@@ -372,7 +372,10 @@ with tab1:
             
             if output_format == "詳細データ（計算過程を含む）":
                 # 詳細データのCSV変換
-                csv = df_detailed_jp.to_csv(index=False, encoding='utf-8-sig')
+                # BOM付きUTF-8でエンコード（Excelでの文字化け防止）
+                csv_buffer = io.StringIO()
+                df_detailed_jp.to_csv(csv_buffer, index=False, encoding='utf-8')
+                csv = csv_buffer.getvalue().encode('utf-8-sig')
                 filename = "murayama_analysis_detailed_results.csv"
                 
                 # プレビュー表示
@@ -381,7 +384,9 @@ with tab1:
             else:
                 # 基本データのみ抽出
                 df_basic = df_detailed[['r0_m', 'theta_deg', 'P_kN_m2']]
-                csv = df_basic.to_csv(index=False, encoding='utf-8-sig')
+                csv_buffer = io.StringIO()
+                df_basic.to_csv(csv_buffer, index=False, encoding='utf-8')
+                csv = csv_buffer.getvalue().encode('utf-8-sig')
                 filename = "murayama_analysis_basic_results.csv"
                 
                 # プレビュー表示
@@ -393,7 +398,7 @@ with tab1:
                 label="計算結果をCSVでダウンロード",
                 data=csv,
                 file_name=filename,
-                mime="text/csv"
+                mime="text/csv;charset=utf-8-sig"
             )
             
             # 臨界条件での詳細結果も表示
