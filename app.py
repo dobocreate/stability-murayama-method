@@ -181,6 +181,7 @@ with tab1:
                 
                 # 結果をセッション状態に保存
                 st.session_state.results = results
+                st.session_state.calculator = calculator
                 st.session_state.calculated = True
                 
             except ValueError as e:
@@ -414,7 +415,7 @@ with tab1:
                     "値": [
                         f"{results['critical_r0']:.3f} m",
                         f"{results['critical_theta_deg']:.1f}° ({results['critical_theta']:.3f} rad)",
-                        f"{calculator.logarithmic_spiral(results['critical_theta'], results['critical_r0']):.3f} m",
+                        f"{st.session_state.calculator.logarithmic_spiral(results['critical_theta'], results['critical_r0']):.3f} m",
                         f"{results['critical_moments']['area']:.3f} m²",
                         f"{results['critical_moments']['centroid_x']:.3f} m",
                         f"{results['critical_moments']['M_W']:.2f} kN·m",
