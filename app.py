@@ -212,11 +212,12 @@ with tab1:
             # 安定性の表示
             stability_class = {
                 "安定": "stability-stable",
+                "安定（自立）": "stability-stable",
                 "要注意": "stability-warning",
                 "不安定": "stability-unstable"
             }
             
-            emoji = {"安定": "😊", "要注意": "😐", "不安定": "😰"}
+            emoji = {"安定": "😊", "安定（自立）": "😊", "要注意": "😐", "不安定": "😰"}
             
             # メトリクスの表示
             col2_1, col2_2, col2_3 = st.columns(3)
@@ -228,10 +229,17 @@ with tab1:
                 )
             
             with col2_2:
-                st.metric(
-                    label="安全率",
-                    value=f"{results['safety_factor']:.2f}"
-                )
+                # 安全率の表示（無限大の場合は特別な表示）
+                if results['safety_factor'] == float('inf'):
+                    st.metric(
+                        label="安全率",
+                        value="∞"
+                    )
+                else:
+                    st.metric(
+                        label="安全率",
+                        value=f"{results['safety_factor']:.2f}"
+                    )
             
             with col2_3:
                 st.metric(
@@ -343,13 +351,16 @@ with tab1:
             st.table(pd.DataFrame(input_data))
             
             st.write("**解析結果サマリー**")
+            # 安全率の表示（無限大の場合の処理）
+            safety_factor_str = "∞" if results['safety_factor'] == float('inf') else f"{results['safety_factor']:.2f}"
+            
             summary_data = {
                 "項目": ["最大必要支保圧", "臨界初期半径 r₀", "臨界角度 θ", "安全率", "安定性評価"],
                 "値": [
                     f"{results['max_P']:.2f} kN/m²",
                     f"{results['critical_r0']:.2f} m",
                     f"{results['critical_theta_deg']:.1f}°",
-                    f"{results['safety_factor']:.2f}",
+                    safety_factor_str,
                     results['stability']
                 ],
             }
