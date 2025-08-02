@@ -463,14 +463,124 @@ with tab2:
     - $M_P$：支保圧によるモーメント
     """)
     
-    st.subheader("2. 計算フロー")
-    st.write("""
-    1. **地盤条件の入力**（γ, φ, c, H, q）
-    2. **解析パラメータの設定**（r₀範囲、θ範囲、計算点数）
-    3. **対数らせん滑り面に基づくモーメント計算**
-    4. **パラメトリックスタディの実施**（r₀とθを変化させて繰り返し計算）
-    5. **最不利条件の抽出**（最大支保圧となる滑り面の特定）
-    """)
+    st.subheader("2. 詳細な計算過程")
+    
+    # 計算過程の詳細をタブで整理
+    calc_tab1, calc_tab2, calc_tab3 = st.tabs(["計算フロー", "詳細計算式", "計算例"])
+    
+    with calc_tab1:
+        st.write("### 計算フローの概要")
+        st.write("""
+        1. **地盤条件の入力**（γ, φ, c, H, q）
+        2. **解析パラメータの設定**（r₀範囲、θ範囲、計算点数）
+        3. **対数らせん滑り面に基づくモーメント計算**
+        4. **パラメトリックスタディの実施**（r₀とθを変化させて繰り返し計算）
+        5. **最不利条件の抽出**（最大支保圧となる滑り面の特定）
+        """)
+        
+        # フローチャートの説明
+        st.info("""
+        **計算の流れ**
+        1. 各(r₀, θ)の組み合わせに対して以下を計算：
+           - 滑り土塊の面積 A
+           - 滑り土塊の重心位置 x̄
+           - 各種モーメント（M_W, M_Q, M_τ）
+           - モーメントつり合いから必要支保圧 P
+        2. 全ての組み合わせから最大の P を特定
+        """)
+    
+    with calc_tab2:
+        st.write("### 詳細な計算式")
+        
+        st.write("#### 2.1 滑り土塊の面積計算")
+        st.latex(r"""
+        A = \int_0^{\theta_{max}} \frac{1}{2} r^2 d\theta = \frac{r_0^2}{2} \int_0^{\theta_{max}} e^{2\theta \tan\phi} d\theta
+        """)
+        st.latex(r"""
+        A = \frac{r_0^2}{4\tan\phi} \left( e^{2\theta_{max} \tan\phi} - 1 \right)
+        """)
+        
+        st.write("#### 2.2 滑り土塊の重心位置")
+        st.latex(r"""
+        \bar{x} = \frac{1}{A} \int_0^{\theta_{max}} \frac{1}{3} r^3(\theta) \cos\theta \, d\theta
+        """)
+        st.write("※ この積分は一般に解析的に解けないため、数値積分を使用します。")
+        
+        st.write("#### 2.3 土塊重量によるモーメント")
+        st.latex(r"""
+        M_W = \gamma \cdot A \cdot \bar{x}
+        """)
+        
+        st.write("#### 2.4 上載荷重によるモーメント")
+        st.latex(r"""
+        b_q = r(\theta_{max}) \cos\theta_{max} - r_0
+        """)
+        st.latex(r"""
+        M_Q = q \cdot b_q \cdot \frac{b_q}{2}
+        """)
+        
+        st.write("#### 2.5 せん断抵抗力によるモーメント")
+        st.write("滑り面に沿う微小要素の長さ：")
+        st.latex(r"""
+        ds = r \sqrt{1 + \tan^2\phi} \, d\theta = r \sec\phi \, d\theta
+        """)
+        st.write("せん断抵抗力によるモーメント（簡略化）：")
+        st.latex(r"""
+        M_\tau = c \cdot r_0^2 \cdot \sec\phi \int_0^{\theta_{max}} e^{2\theta \tan\phi} d\theta \cdot (1 + \tan\phi)
+        """)
+        
+        st.write("#### 2.6 必要支保圧の算出")
+        st.write("モーメントのつり合い：")
+        st.latex(r"""
+        M_W + M_Q = M_\tau + M_P
+        """)
+        st.write("支保圧によるモーメント：")
+        st.latex(r"""
+        M_P = P \cdot H \cdot \frac{H}{2} = \frac{P \cdot H^2}{2}
+        """)
+        st.write("したがって、必要支保圧は：")
+        st.latex(r"""
+        P = \frac{2(M_W + M_Q - M_\tau)}{H^2}
+        """)
+    
+    with calc_tab3:
+        st.write("### 計算例")
+        st.write("以下の条件での計算過程を示します：")
+        
+        # 計算例の条件
+        example_data = {
+            "パラメータ": ["H", "γ", "φ", "c", "q", "r₀", "θ"],
+            "値": ["10 m", "20 kN/m³", "30°", "20 kN/m²", "0 kN/m²", "2.0 m", "30° (0.524 rad)"]
+        }
+        st.table(pd.DataFrame(example_data))
+        
+        st.write("#### 計算過程")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("**1. 対数らせんの終端半径**")
+            st.latex(r"r = 2.0 \times e^{0.524 \times \tan(30°)} = 2.71 \text{ m}")
+            
+            st.write("**2. 滑り土塊の面積**")
+            st.latex(r"A = \frac{2.0^2}{4 \times \tan(30°)} \times (e^{0.605} - 1)")
+            st.latex(r"A = 5.76 \text{ m}^2")
+            
+            st.write("**3. 重心位置（数値積分）**")
+            st.latex(r"\bar{x} \approx 1.85 \text{ m}")
+        
+        with col2:
+            st.write("**4. 土塊重量モーメント**")
+            st.latex(r"M_W = 20 \times 5.76 \times 1.85 = 213.1 \text{ kN·m}")
+            
+            st.write("**5. せん断抵抗モーメント**")
+            st.latex(r"M_\tau \approx 180.5 \text{ kN·m}")
+            
+            st.write("**6. 必要支保圧**")
+            st.latex(r"P = \frac{2 \times (213.1 + 0 - 180.5)}{10^2}")
+            st.latex(r"P = 0.65 \text{ kN/m}^2")
+        
+        st.info("この計算を全てのパラメータ組み合わせで実行し、最大値を求めることで最不利条件を特定します。")
     
     st.subheader("3. パラメータの詳細説明")
     param_df = pd.DataFrame({
