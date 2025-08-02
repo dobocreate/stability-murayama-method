@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トンネル切羽安定性評価システム - 改善版モックアップ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #262730;
+        }
+        
+        /* ヘッダー・ナビゲーション */
+        .header {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 2rem;
+            border-bottom: 2px solid #e0e2e6;
+            padding-bottom: 0.5rem;
+        }
+        
+        .nav-tab {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            padding: 0.5rem 0;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .nav-tab.active {
+            color: #0066cc;
+            border-bottom-color: #0066cc;
+        }
+        
+        /* メインコンテンツ */
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        /* 安定性インジケーター */
+        .stability-indicator {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .stability-meter {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+        
+        .meter-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 180deg,
+                #ff4444 0deg,
+                #ffaa00 120deg,
+                #44ff44 240deg,
+                #f0f0f0 240deg
+            );
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 安定度による色分け */
+        .meter-circle.stable {
+            background: conic-gradient(
+                from 180deg,
+                #f0f0f0 0deg,
+                #f0f0f0 120deg,
+                #44ff44 120deg,
+                #44ff44 240deg,
+                #f0f0f0 240deg
+            );
+        }
+        
+        .meter-circle.warning {
+            background: conic-gradient(
+                from 180deg,
+                #f0f0f0 0deg,
+                #ffaa00 60deg,
+                #ffaa00 180deg,
+                #f0f0f0 180deg
+            );
+        }
+        
+        .meter-circle.unstable {
+            background: conic-gradient(
+                from 180deg,
+                #ff4444 0deg,
+                #ff4444 120deg,
+                #f0f0f0 120deg
+            );
+        }
+        
+        .meter-inner {
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stability-value {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        
+        .stability-label {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+        
+        .stable { color: #44ff44; }
+        .warning { color: #ffaa00; }
+        .unstable { color: #ff4444; }
+        
+        /* 顔文字の切り替え用 */
+        .status-emoji::before {
+            font-size: 1.5rem;
+        }
+        .status-emoji.stable::before {
+            content: "😊";
+        }
+        .status-emoji.warning::before {
+            content: "😐";
+        }
+        .status-emoji.unstable::before {
+            content: "😰";
+        }
+        
+        .stability-details {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .detail-item {
+            text-align: center;
+        }
+        
+        .detail-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0066cc;
+        }
+        
+        .detail-label {
+            font-size: 0.875rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        /* 入力セクション */
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            align-items: start;
+        }
+        
+        .input-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .input-label-inline {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+            flex: 1;
+        }
+        
+        .input-box {
+            width: 100px;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 0.375rem;
+            text-align: right;
+            font-size: 0.9rem;
+            background-color: #ffffff;
+        }
+        
+        .input-box:disabled {
+            background-color: #f5f5f5;
+            color: #999;
+        }
+        
+        .input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tooltip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background-color: #e0e2e6;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            cursor: help;
+        }
+        
+        /* 実行ボタン */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            justify-content: center;
+        }
+        
+        .button {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .button-primary {
+            background-color: #0066cc;
+            color: white;
+        }
+        
+        .button-primary:hover {
+            background-color: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.3);
+        }
+        
+        .button-secondary {
+            background-color: white;
+            color: #0066cc;
+            border: 2px solid #0066cc;
+        }
+        
+        /* 結果表示セクション */
+        .results-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+        
+        .results-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e0e2e6;
+        }
+        
+        .result-tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .result-tab.active {
+            color: #0066cc;
+            border-bottom-color: #0066cc;
+        }
+        
+        /* プレビューコンテナ */
+        .preview-container {
+            background-color: #fafafa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid #e0e2e6;
+        }
+        
+        .preview-content {
+            text-align: center;
+            color: #888;
+            padding: 1rem;
+        }
+        
+        /* 技術情報ページ */
+        .tech-info-page {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .tech-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .tech-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #262730;
+        }
+        
+        .flowchart {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin: 1rem 0;
+        }
+        
+        .formula {
+            background-color: #f0f7ff;
+            border-left: 4px solid #0066cc;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .stability-details {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">
+                🚇 トンネル切羽安定性評価システム
+            </h1>
+            <nav class="nav-tabs">
+                <a href="#" class="nav-tab active">安定性評価</a>
+                <a href="#" class="nav-tab">技術情報</a>
+                <a href="#" class="nav-tab">使い方</a>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- メインコンテンツ -->
+    <main class="main-container">
+        <!-- 安定性評価ページ -->
+        <div id="evaluation-page">
+            <!-- 入力と結果の2列レイアウト -->
+            <div class="input-section">
+                <!-- 左列：地盤条件 -->
+                <div class="input-card">
+                    <div class="card-header">
+                        <h3 class="card-title">地盤条件</h3>
+                    </div>
+                    
+                    <div class="input-row">
+                        <label class="input-label-inline">
+                            切羽高さ H (m)
+                            <span class="tooltip">?</span>
+                        </label>
+                        <input type="number" class="input-box" value="10.0" step="0.5">
+                    </div>
+                    
+                    <div class="input-row">
+                        <label class="input-label-inline">
+                            地山単位体積重量 γ (kN/m³)
+                            <span class="tooltip">?</span>
+                        </label>
+                        <input type="number" class="input-box" value="20.0" step="0.5">
+                    </div>
+                    
+                    <div class="input-row">
+                        <label class="input-label-inline">
+                            地山内部摩擦角 φ (度)
+                            <span class="tooltip">?</span>
+                        </label>
+                        <input type="number" class="input-box" value="30.0" step="1.0">
+                    </div>
+                    
+                    <div class="input-row">
+                        <label class="input-label-inline">
+                            地山粘着力 c (kN/m²)
+                            <span class="tooltip">?</span>
+                        </label>
+                        <input type="number" class="input-box" value="20.0" step="5.0">
+                    </div>
+                    
+                    <div style="margin-top: 1.25rem;">
+                        <div class="input-row">
+                            <label class="input-label-inline">
+                                <input type="checkbox" style="margin-right: 0.5rem;">
+                                上載荷重 q (kN/m²)
+                            </label>
+                            <input type="number" class="input-box" value="10.0" step="5.0" disabled>
+                        </div>
+                    </div>
+                    
+                    <div style="border-top: 1px solid #e0e2e6; margin-top: 1.5rem; padding-top: 1.5rem;">
+                        <h4 style="font-size: 1.1rem; margin-bottom: 1rem;">解析パラメータ</h4>
+                        <div class="input-row">
+                            <label class="input-label-inline">初期半径 r₀ 最小値 (m)</label>
+                            <input type="number" class="input-box" value="0.5" step="0.1">
+                        </div>
+                        <div class="input-row">
+                            <label class="input-label-inline">初期半径 r₀ 最大値 (m)</label>
+                            <input type="number" class="input-box" value="5.0" step="0.1">
+                        </div>
+                        <div class="input-row">
+                            <label class="input-label-inline">角度 θ 最小値 (度)</label>
+                            <input type="number" class="input-box" value="10" step="5">
+                        </div>
+                        <div class="input-row">
+                            <label class="input-label-inline">角度 θ 最大値 (度)</label>
+                            <input type="number" class="input-box" value="60" step="5">
+                        </div>
+                        <div class="input-row">
+                            <label class="input-label-inline">計算点数</label>
+                            <input type="number" class="input-box" value="20" step="5">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右列：評価結果とプレビュー -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- 切羽安定性評価結果 -->
+                    <div class="input-card">
+                        <h3 class="card-title" style="margin-bottom: 1rem;">切羽安定性評価結果</h3>
+                        <div style="text-align: center;">
+                            <div class="stability-meter" style="width: 150px; height: 150px; margin: 0 auto;">
+                                <div class="meter-circle stable">
+                                    <div class="meter-inner" style="width: 120px; height: 120px;">
+                                        <div class="stability-value stable" style="font-size: 2rem;">安定</div>
+                                        <div class="status-emoji stable"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="stability-label stable" style="font-size: 1rem; margin: 0.5rem 0;">切羽は安定しています</p>
+                            <div class="stability-details" style="gap: 2rem; margin-top: 1rem;">
+                                <div class="detail-item">
+                                    <div class="detail-value" style="font-size: 1.25rem;">45.32</div>
+                                    <div class="detail-label" style="font-size: 0.75rem;">必要支保圧 (kN/m²)</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-value" style="font-size: 1.25rem;">1.85</div>
+                                    <div class="detail-label" style="font-size: 0.75rem;">安全率</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-value" style="font-size: 1.25rem;">85%</div>
+                                    <div class="detail-label" style="font-size: 0.75rem;">安定度</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 概念図表示 -->
+                    <div class="input-card">
+                        <h3 class="card-title" style="margin-bottom: 1rem;">解析概念図</h3>
+                        <div class="preview-container" style="height: 300px;">
+                            <div class="preview-content">
+                                <svg width="280" height="260" style="margin: 10px auto; display: block;">
+                                    <!-- 背景グリッド -->
+                                    <defs>
+                                        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" stroke-width="1"/>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="280" height="260" fill="url(#grid)" />
+                                    
+                                    <!-- 地表面 -->
+                                    <line x1="0" y1="80" x2="280" y2="80" stroke="#666" stroke-width="2"/>
+                                    <text x="10" y="70" font-size="12" fill="#666">地表面</text>
+                                    
+                                    <!-- トンネル断面 -->
+                                    <rect x="90" y="120" width="100" height="100" 
+                                          fill="#ffffff" stroke="#333" stroke-width="3"/>
+                                    <text x="140" y="175" text-anchor="middle" font-size="14" fill="#333">切羽</text>
+                                    <text x="140" y="235" text-anchor="middle" font-size="12" fill="#666">H</text>
+                                    
+                                    <!-- 対数らせん滑り面 -->
+                                    <path d="M 140 120 Q 220 80 230 180 L 190 220 L 140 220 Z" 
+                                          fill="#CD853F" opacity="0.3" stroke="#8B4513" stroke-width="2"/>
+                                    
+                                    <!-- 上載荷重 q -->
+                                    <g>
+                                        <path d="M 60 70 L 60 80 M 80 70 L 80 80 M 100 70 L 100 80 M 120 70 L 120 80 M 140 70 L 140 80 M 160 70 L 160 80 M 180 70 L 180 80 M 200 70 L 200 80 M 220 70 L 220 80"
+                                              stroke="#ff6666" stroke-width="2"/>
+                                        <text x="240" y="75" font-size="12" fill="#ff6666">q</text>
+                                    </g>
+                                    
+                                    <!-- 支保圧 P -->
+                                    <g>
+                                        <path d="M 100 130 L 90 130 M 100 150 L 90 150 M 100 170 L 90 170 M 100 190 L 90 190 M 100 210 L 90 210"
+                                              stroke="#0066cc" stroke-width="2"/>
+                                        <text x="70" y="175" font-size="12" fill="#0066cc">P</text>
+                                    </g>
+                                    
+                                    <!-- パラメータ表示 -->
+                                    <text x="200" y="140" font-size="11" fill="#666">r₀</text>
+                                    <text x="180" y="105" font-size="11" fill="#666">θ</text>
+                                    
+                                    <!-- 滑り土塊の重心表示 -->
+                                    <circle cx="180" cy="160" r="3" fill="#8B4513"/>
+                                    <text x="190" y="165" font-size="10" fill="#666">W</text>
+                                    
+                                    <!-- 凡例 -->
+                                    <text x="140" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">
+                                        村山の式による切羽安定解析
+                                    </text>
+                                    <text x="140" y="40" text-anchor="middle" font-size="11" fill="#666">
+                                        対数らせん滑り面を仮定した極限つり合い法
+                                    </text>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons" style="margin-bottom: 2rem;">
+                <button class="button button-primary">解析の実行</button>
+                <button class="button button-secondary">結果を保存</button>
+            </div>
+            
+            <!-- 詳細結果 -->
+            <div class="results-section">
+                <div class="results-tabs">
+                    <button class="result-tab active">滑り面解析</button>
+                    <button class="result-tab">感度分析</button>
+                    <button class="result-tab">詳細データ</button>
+                </div>
+                <div style="height: 400px; background-color: #f8f9fa; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                    <p style="color: #888;">詳細解析結果がここに表示されます</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 使い方ページ（非表示） -->
+        <div id="usage-page" style="display: none; max-width: 1000px; margin: 0 auto;">
+            <div class="tech-section">
+                <h2 class="tech-title">使い方</h2>
+                <p>このページは今後実装予定です。システムの基本的な操作方法や、各機能の詳細な使い方を掲載します。</p>
+            </div>
+        </div>
+        
+        <!-- 技術情報ページ（非表示） -->
+        <div id="tech-info-page" class="tech-info-page" style="display: none;">
+            <div class="tech-section">
+                <h2 class="tech-title">1. 村山の式について</h2>
+                <p>村山の式は、トンネル切羽の安定性を評価するための理論的手法です。この手法は、土木学会などで広く認められており、実務においても多く使用されています。</p>
+                
+                <h3 style="font-size: 1.2rem; margin: 1.5rem 0 1rem 0;">基本理論</h3>
+                <p>切羽前方の地山に対数らせん滑り面を仮定し、滑り土塊に作用する力のモーメントのつり合いから、切羽の安定に必要な支保圧を算出します。</p>
+                
+                <div class="formula">
+                    <strong>対数らせん曲線：</strong><br>
+                    r = r₀ × e^(θ × tan φ)<br><br>
+                    <strong>モーメントつり合い式：</strong><br>
+                    M_W + M_Q = M_τ + M_P<br><br>
+                    ここで、<br>
+                    M_W：土塊重量によるモーメント<br>
+                    M_Q：上載荷重によるモーメント<br>
+                    M_τ：せん断抵抗力によるモーメント<br>
+                    M_P：支保圧によるモーメント
+                </div>
+            </div>
+            
+            <div class="tech-section">
+                <h2 class="tech-title">2. 計算フロー</h2>
+                <div class="flowchart">
+                    <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 600px; margin: 0 auto;">
+                        <div style="background: #0066cc; color: white; padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                            <strong>STEP 1</strong><br>
+                            地盤条件の入力（γ, φ, c, H, q）
+                        </div>
+                        <div style="text-align: center; font-size: 1.5rem;">↓</div>
+                        <div style="background: #0066cc; color: white; padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                            <strong>STEP 2</strong><br>
+                            解析パラメータの設定（r₀範囲、θ範囲、計算点数）
+                        </div>
+                        <div style="text-align: center; font-size: 1.5rem;">↓</div>
+                <div style="border-top: 1px solid #e0e2e6; margin-top: 1.5rem; padding-top: 1.5rem;">
+                    <div style="background: #0066cc; color: white; padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                        <strong>STEP 3</strong><br>
+                        対数らせん滑り面に基づくモーメント計算<br>
+                        （土塊重量・上載荷重・せん断抵抗・支保圧）
+                    </div>
+                    <div style="text-align: center; font-size: 1.5rem;">↓</div>
+                    <div style="background: #0066cc; color: white; padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                        <strong>STEP 4</strong><br>
+                        パラメトリックスタディの実施<br>
+                        （r₀とθを変化させて繰り返し計算）
+                    </div>
+                        <div style="text-align: center; font-size: 1.5rem;">↓</div>
+                        <div style="background: #ff6b6b; color: white; padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                            <strong>STEP 5</strong><br>
+                            最不利条件の抽出<br>
+                            （最大支保圧となる滑り面の特定）
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tech-section">
+                <h2 class="tech-title">3. パラメータの詳細説明</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background-color: #f8f9fa;">
+                        <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd; width: 20%;">パラメータ</th>
+                        <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd; width: 40%;">説明</th>
+                        <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd; width: 20%;">一般的な範囲</th>
+                        <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd; width: 20%;">単位</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;"><strong>H</strong></td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">切羽高さ（トンネル断面の高さ）</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">5～15</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">m</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;"><strong>γ</strong></td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">地山の単位体積重量</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">18～25</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">kN/m³</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;"><strong>φ</strong></td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">地山の内部摩擦角（せん断抵抗角）</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">20～40</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">度</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;"><strong>c</strong></td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">地山の粘着力</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">10～50</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">kN/m²</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;"><strong>q</strong></td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">地表面の上載荷重（建物・交通荷重等）</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">0～50</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">kN/m²</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;"><strong>r₀</strong></td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">対数らせんの初期半径</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">0.1～10</td>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">m</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem;"><strong>θ</strong></td>
+                        <td style="padding: 1rem;">滑り面の開き角度</td>
+                        <td style="padding: 1rem;">10～90</td>
+                        <td style="padding: 1rem;">度</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="tech-section">
+                <h2 class="tech-title">4. 地盤条件の目安</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background-color: #f8f9fa;">
+                        <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">地盤種別</th>
+                        <th style="padding: 1rem; text-align: center; border-bottom: 2px solid #ddd;">γ (kN/m³)</th>
+                        <th style="padding: 1rem; text-align: center; border-bottom: 2px solid #ddd;">φ (度)</th>
+                        <th style="padding: 1rem; text-align: center; border-bottom: 2px solid #ddd;">c (kN/m²)</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">軟岩（風化岩）</td>
+                        <td style="padding: 1rem; text-align: center; border-bottom: 1px solid #eee;">22～24</td>
+                        <td style="padding: 1rem; text-align: center; border-bottom: 1px solid #eee;">30～40</td>
+                        <td style="padding: 1rem; text-align: center; border-bottom: 1px solid #eee;">30～50</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border-bottom: 1px solid #eee;">土砂地山</td>
+                        <td style="padding: 1rem; text-align: center; border-bottom: 1px solid #eee;">18～20</td>
+                        <td style="padding: 1rem; text-align: center; border-bottom: 1px solid #eee;">25～35</td>
+                        <td style="padding: 1rem; text-align: center; border-bottom: 1px solid #eee;">10～30</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem;">粘性土</td>
+                        <td style="padding: 1rem; text-align: center;">16～18</td>
+                        <td style="padding: 1rem; text-align: center;">20～30</td>
+                        <td style="padding: 1rem; text-align: center;">20～40</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="tech-section">
+                <h2 class="tech-title">5. 使用上の注意事項</h2>
+                <ul style="line-height: 1.8; padding-left: 1.5rem;">
+                    <li>本手法は、均質な地盤を前提としています。層状地盤や不均質地盤の場合は、別途検討が必要です。</li>
+                    <li>地下水の影響は考慮していません。地下水位が高い場合は、別途水圧を考慮する必要があります。</li>
+                    <li>計算結果は理論値であり、実際の施工では安全率を考慮して支保工を設計してください。</li>
+                    <li>地盤定数は、現場での調査・試験結果に基づいて設定することが重要です。</li>
+                    <li>大深度トンネルや特殊な条件下では、3次元効果を考慮した詳細な解析が推奨されます。</li>
+                </ul>
+            </div>
+            
+            <div class="tech-section">
+                <h2 class="tech-title">6. 参考文献</h2>
+                <ul style="line-height: 1.8; padding-left: 1.5rem;">
+                    <li>村山朔郎：「トンネル切羽の安定性に関する研究」、土木学会論文集</li>
+                    <li>土木学会：「トンネル標準示方書（山岳工法編）・同解説」</li>
+                    <li>地盤工学会：「地盤工学ハンドブック」</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // タブ切り替え機能
+        document.addEventListener('DOMContentLoaded', function() {
+            const navTabs = document.querySelectorAll('.nav-tab');
+            const evaluationPage = document.getElementById('evaluation-page');
+            const techInfoPage = document.getElementById('tech-info-page');
+            const usagePage = document.getElementById('usage-page');
+            
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // すべてのタブからactiveクラスを削除
+                    navTabs.forEach(t => t.classList.remove('active'));
+                    // クリックされたタブにactiveクラスを追加
+                    this.classList.add('active');
+                    
+                    // すべてのページを非表示
+                    evaluationPage.style.display = 'none';
+                    techInfoPage.style.display = 'none';
+                    usagePage.style.display = 'none';
+                    
+                    // ページの表示切り替え
+                    if (this.textContent === '安定性評価') {
+                        evaluationPage.style.display = 'block';
+                    } else if (this.textContent === '技術情報') {
+                        techInfoPage.style.display = 'block';
+                    } else if (this.textContent === '使い方') {
+                        usagePage.style.display = 'block';
+                    }
+                });
+            });
+            
+            // 上載荷重チェックボックスの処理
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                const surchargeInput = checkbox.parentElement.parentElement.querySelector('.input-box');
+                if (surchargeInput) {
+                    checkbox.addEventListener('change', function() {
+                        surchargeInput.disabled = !this.checked;
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
