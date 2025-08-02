@@ -343,28 +343,88 @@ with tab1:
             # CSV出力機能
             st.write("**データエクスポート**")
             
-            # パラメトリックスタディ結果のDataFrame作成
-            export_data = []
-            for i, r0 in enumerate(results['r0_values']):
-                for j, theta_deg in enumerate(results['theta_degrees']):
-                    export_data.append({
-                        'r0_m': r0,
-                        'theta_deg': theta_deg,
-                        'P_kN_m2': results['P_matrix'][i, j]
-                    })
+            # 詳細な計算結果のDataFrame作成
+            df_detailed = pd.DataFrame(results['detailed_results'])
             
-            df_export = pd.DataFrame(export_data)
+            # カラム名を日本語に変更（オプション）
+            column_names = {
+                'r0_m': '初期半径r0 (m)',
+                'theta_rad': '角度θ (rad)',
+                'theta_deg': '角度θ (度)',
+                'r_end_m': '終端半径r (m)',
+                'area_m2': '滑り土塊面積 (m²)',
+                'centroid_x_m': '重心x座標 (m)',
+                'M_W_kNm': '土塊重量モーメントM_W (kN·m)',
+                'M_Q_kNm': '上載荷重モーメントM_Q (kN·m)',
+                'M_tau_kNm': 'せん断抵抗モーメントM_τ (kN·m)',
+                'M_P_required_kNm': '必要支保圧モーメントM_P (kN·m)',
+                'P_kN_m2': '必要支保圧P (kN/m²)'
+            }
+            df_detailed_jp = df_detailed.rename(columns=column_names)
             
-            # CSV変換
-            csv = df_export.to_csv(index=False, encoding='utf-8-sig')
+            # 出力形式の選択
+            output_format = st.radio(
+                "出力形式を選択",
+                ["詳細データ（計算過程を含む）", "基本データ（r0, θ, Pのみ）"],
+                horizontal=True
+            )
+            
+            if output_format == "詳細データ（計算過程を含む）":
+                # 詳細データのCSV変換
+                csv = df_detailed_jp.to_csv(index=False, encoding='utf-8-sig')
+                filename = "murayama_analysis_detailed_results.csv"
+                
+                # プレビュー表示
+                st.write("データプレビュー（最初の5行）")
+                st.dataframe(df_detailed_jp.head())
+            else:
+                # 基本データのみ抽出
+                df_basic = df_detailed[['r0_m', 'theta_deg', 'P_kN_m2']]
+                csv = df_basic.to_csv(index=False, encoding='utf-8-sig')
+                filename = "murayama_analysis_basic_results.csv"
+                
+                # プレビュー表示
+                st.write("データプレビュー（最初の5行）")
+                st.dataframe(df_basic.head())
             
             # ダウンロードボタン
             st.download_button(
                 label="計算結果をCSVでダウンロード",
                 data=csv,
-                file_name="murayama_analysis_results.csv",
+                file_name=filename,
                 mime="text/csv"
             )
+            
+            # 臨界条件での詳細結果も表示
+            if results['critical_moments']:
+                st.write("**臨界条件での詳細計算結果**")
+                critical_data = {
+                    "項目": [
+                        "初期半径 r₀",
+                        "角度 θ",
+                        "終端半径 r",
+                        "滑り土塊面積",
+                        "重心x座標",
+                        "土塊重量モーメント M_W",
+                        "上載荷重モーメント M_Q",
+                        "せん断抵抗モーメント M_τ",
+                        "必要支保圧モーメント M_P",
+                        "必要支保圧 P"
+                    ],
+                    "値": [
+                        f"{results['critical_r0']:.3f} m",
+                        f"{results['critical_theta_deg']:.1f}° ({results['critical_theta']:.3f} rad)",
+                        f"{calculator.logarithmic_spiral(results['critical_theta'], results['critical_r0']):.3f} m",
+                        f"{results['critical_moments']['area']:.3f} m²",
+                        f"{results['critical_moments']['centroid_x']:.3f} m",
+                        f"{results['critical_moments']['M_W']:.2f} kN·m",
+                        f"{results['critical_moments']['M_Q']:.2f} kN·m",
+                        f"{results['critical_moments']['M_tau']:.2f} kN·m",
+                        f"{results['critical_moments']['M_W'] + results['critical_moments']['M_Q'] - results['critical_moments']['M_tau']:.2f} kN·m",
+                        f"{results['max_P']:.2f} kN/m²"
+                    ]
+                }
+                st.table(pd.DataFrame(critical_data))
 
 with tab2:
     # 技術情報ページ

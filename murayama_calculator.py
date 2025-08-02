@@ -208,20 +208,45 @@ class MurayamaCalculator:
         
         # 結果格納用の配列
         P_matrix = np.zeros((n_points, n_points))
+        detailed_results = []  # 詳細な計算結果を格納
         max_P = 0
         critical_r0 = 0
         critical_theta = 0
+        critical_moments = None
         
         # 全組み合わせで計算
         for i, r0 in enumerate(r0_values):
             for j, theta in enumerate(theta_values):
-                P = self.calculate_required_pressure(r0, theta)
+                # モーメント計算
+                moments = self.calculate_moments(r0, theta)
+                
+                # 必要支保圧の計算
+                M_P_required = moments['M_W'] + moments['M_Q'] - moments['M_tau']
+                P = 2 * M_P_required / (self.H ** 2)
+                P = max(0, P)
+                
                 P_matrix[i, j] = P
+                
+                # 詳細結果の保存
+                detailed_results.append({
+                    'r0_m': r0,
+                    'theta_rad': theta,
+                    'theta_deg': np.degrees(theta),
+                    'r_end_m': self.logarithmic_spiral(theta, r0),
+                    'area_m2': moments['area'],
+                    'centroid_x_m': moments['centroid_x'],
+                    'M_W_kNm': moments['M_W'],
+                    'M_Q_kNm': moments['M_Q'],
+                    'M_tau_kNm': moments['M_tau'],
+                    'M_P_required_kNm': M_P_required,
+                    'P_kN_m2': P
+                })
                 
                 if P > max_P:
                     max_P = P
                     critical_r0 = r0
                     critical_theta = theta
+                    critical_moments = moments.copy()
         
         # 安全率の計算（仮定：既存支保圧100 kN/m²に対する比）
         assumed_support_pressure = 100.0
@@ -243,10 +268,12 @@ class MurayamaCalculator:
             'theta_values': theta_values,
             'theta_degrees': np.degrees(theta_values),
             'P_matrix': P_matrix,
+            'detailed_results': detailed_results,
             'max_P': max_P,
             'critical_r0': critical_r0,
             'critical_theta': critical_theta,
             'critical_theta_deg': np.degrees(critical_theta),
+            'critical_moments': critical_moments,
             'safety_factor': safety_factor,
             'stability': stability,
             'stability_percentage': stability_percentage
