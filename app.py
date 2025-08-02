@@ -571,10 +571,10 @@ with tab2:
         
         with col2:
             st.write("**4. 土塊重量モーメント**")
-            st.latex(r"M_W = 20 \times 5.76 \times 1.85 = 213.1 \text{ kN·m}")
+            st.latex(r"M_W = 20 \times 5.76 \times 1.85 = 213.1 \text{ kN}\cdot\text{m}")
             
             st.write("**5. せん断抵抗モーメント**")
-            st.latex(r"M_\tau \approx 180.5 \text{ kN·m}")
+            st.latex(r"M_\tau \approx 180.5 \text{ kN}\cdot\text{m}")
             
             st.write("**6. 必要支保圧**")
             st.latex(r"P = \frac{2 \times (213.1 + 0 - 180.5)}{10^2}")
