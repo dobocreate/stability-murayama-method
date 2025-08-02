@@ -188,7 +188,7 @@ class MurayamaCalculator:
         # 必要支保圧
         P = 2 * M_P_required / (self.H ** 2)
         
-        return max(0, P)  # 負の値にならないようにする
+        return P  # 負の値も許容（切羽が自立する場合）
     
     def parametric_study(self, r0_range: Tuple[float, float], theta_range: Tuple[float, float], 
                         n_points: int = 20) -> Dict[str, Any]:
@@ -223,7 +223,7 @@ class MurayamaCalculator:
                 # 必要支保圧の計算
                 M_P_required = moments['M_W'] + moments['M_Q'] - moments['M_tau']
                 P = 2 * M_P_required / (self.H ** 2)
-                P = max(0, P)
+                # P = max(0, P)  # 負の値も許容するためコメントアウト
                 
                 P_matrix[i, j] = P
                 
@@ -250,18 +250,25 @@ class MurayamaCalculator:
         
         # 安全率の計算（仮定：既存支保圧100 kN/m²に対する比）
         assumed_support_pressure = 100.0
-        safety_factor = assumed_support_pressure / max_P if max_P > 0 else float('inf')
         
-        # 安定度の評価
-        if safety_factor >= 1.5:
-            stability = "安定"
-            stability_percentage = min(100, safety_factor * 50)
-        elif safety_factor >= 1.0:
-            stability = "要注意"
-            stability_percentage = 50 + (safety_factor - 1.0) * 100
+        # 負の支保圧の場合は自立していることを示す
+        if max_P <= 0:
+            safety_factor = float('inf')  # 無限大の安全率
+            stability = "安定（自立）"
+            stability_percentage = 100
         else:
-            stability = "不安定"
-            stability_percentage = max(0, safety_factor * 50)
+            safety_factor = assumed_support_pressure / max_P
+            
+            # 安定度の評価
+            if safety_factor >= 1.5:
+                stability = "安定"
+                stability_percentage = min(100, safety_factor * 50)
+            elif safety_factor >= 1.0:
+                stability = "要注意"
+                stability_percentage = 50 + (safety_factor - 1.0) * 100
+            else:
+                stability = "不安定"
+                stability_percentage = max(0, safety_factor * 50)
         
         return {
             'r0_values': r0_values,

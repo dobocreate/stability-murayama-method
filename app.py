@@ -100,7 +100,7 @@ with tab1:
         c = st.number_input(
             "地山粘着力 c (kN/m²)",
             min_value=0.0,
-            max_value=200.0,
+            max_value=1000.0,
             value=20.0,
             step=5.0,
             help="地山の粘着力を入力してください"
