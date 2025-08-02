@@ -54,8 +54,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# タイトル
-st.title("🚇 トンネル切羽安定性評価システム")
+# タイトル（中央配置）
+st.markdown("""
+<h1 style='text-align: center;'>🚇 トンネル切羽安定性評価システム</h1>
+""", unsafe_allow_html=True)
 
 # タブの作成
 tab1, tab2, tab3 = st.tabs(["安定性評価", "技術情報", "使い方"])
@@ -120,37 +122,49 @@ with tab1:
         st.markdown("---")
         st.subheader("解析パラメータ")
         
-        r0_min = st.number_input(
-            "初期半径 r₀ 最小値 (m)",
-            min_value=0.1,
-            max_value=10.0,
-            value=0.5,
-            step=0.1
-        )
+        # 初期半径r₀の範囲設定（同一行）
+        st.write("**初期半径 r₀ の範囲 (m)**")
+        r0_col1, r0_col2 = st.columns(2)
+        with r0_col1:
+            r0_min = st.number_input(
+                "最小値",
+                min_value=0.1,
+                max_value=10.0,
+                value=0.5,
+                step=0.1,
+                key="r0_min"
+            )
+        with r0_col2:
+            r0_max = st.number_input(
+                "最大値",
+                min_value=0.1,
+                max_value=20.0,
+                value=5.0,
+                step=0.1,
+                key="r0_max"
+            )
         
-        r0_max = st.number_input(
-            "初期半径 r₀ 最大値 (m)",
-            min_value=0.1,
-            max_value=20.0,
-            value=5.0,
-            step=0.1
-        )
-        
-        theta_min = st.number_input(
-            "角度 θ 最小値 (度)",
-            min_value=5.0,
-            max_value=90.0,
-            value=10.0,
-            step=5.0
-        )
-        
-        theta_max = st.number_input(
-            "角度 θ 最大値 (度)",
-            min_value=5.0,
-            max_value=90.0,
-            value=60.0,
-            step=5.0
-        )
+        # 角度θの範囲設定（同一行）
+        st.write("**角度 θ の範囲 (度)**")
+        theta_col1, theta_col2 = st.columns(2)
+        with theta_col1:
+            theta_min = st.number_input(
+                "最小値",
+                min_value=5.0,
+                max_value=90.0,
+                value=10.0,
+                step=5.0,
+                key="theta_min"
+            )
+        with theta_col2:
+            theta_max = st.number_input(
+                "最大値",
+                min_value=5.0,
+                max_value=90.0,
+                value=60.0,
+                step=5.0,
+                key="theta_max"
+            )
         
         n_points = st.number_input(
             "計算点数",
