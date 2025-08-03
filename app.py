@@ -406,10 +406,10 @@ with tab1:
             # 詳細データの表示
             st.write("**入力パラメータ**")
             input_data = {
-                "パラメータ": ["切羽高さ H_f", "地山単位体積重量 γ", "地山内部摩擦角 φ", "地山粘着力 c", 
-                           "土被り C", "影響幅係数 α", "経験係数 K"],
-                "値": [f"{H_f} m", f"{gamma} kN/m³", f"{phi}°", f"{c} kPa", 
-                      f"{C} m" if C is not None else "深部前提", f"{alpha}", f"{K}"],
+                "パラメータ": ["切羽高さ H_f", "地山単位体積重量 γ", "地山内部摩擦角 φ", "地山粘着力 c",
+                        "土被り H", "影響幅係数 α", "経験係数 K"],
+                "値": [f"{H_f} m", f"{gamma} kN/m³", f"{phi}°", f"{c} kPa",
+                    f"{H} m" if H is not None else "深部前提", f"{alpha}", f"{K}"],
             }
             st.table(pd.DataFrame(input_data))
             
