@@ -70,6 +70,17 @@ with tab1:
         # 地盤条件の入力
         st.subheader("地盤条件")
         
+        # 土被り（最初に配置）
+        H = st.number_input(
+            "土被り H (m)",
+            min_value=0.0,
+            max_value=200.0,
+            value=30.0,
+            step=5.0,
+            help="地表面からトンネル天端までの土被りを入力してください"
+        )
+        
+        # 切羽高さ
         H_f = st.number_input(
             "切羽高さ H_f (m)",
             min_value=0.1,
@@ -79,6 +90,7 @@ with tab1:
             help="トンネル断面の高さを入力してください"
         )
         
+        # 地山単位体積重量
         gamma = st.number_input(
             "地山単位体積重量 γ (kN/m³)",
             min_value=10.0,
@@ -88,6 +100,7 @@ with tab1:
             help="地山の単位体積重量を入力してください"
         )
         
+        # 地山内部摩擦角
         phi = st.number_input(
             "地山内部摩擦角 φ (度)",
             min_value=0.0,
@@ -97,6 +110,7 @@ with tab1:
             help="地山の内部摩擦角を入力してください"
         )
         
+        # 地山粘着力
         coh = st.number_input(
             "地山粘着力 coh (kPa)",
             min_value=0.0,
@@ -106,32 +120,16 @@ with tab1:
             help="地山の粘着力を入力してください（kPa単位）"
         )
         
-        # 土被り条件
+        # 計算オプション
         st.markdown("---")
-        st.subheader("土被り条件")
+        st.subheader("計算オプション")
         
-        use_finite_cover = st.checkbox("有限土被りを考慮する", value=False)
         force_finite_cover = st.checkbox(
             "有限土被り式を強制的に使用", 
             value=False,
-            help="チェックすると深部条件でも常に有限土被り式を使用します（Excel互換モード）"
+            help="チェックすると深部条件（H > 1.5B）でも常に有限土被り式を使用します"
         )
         
-        excel_compatible_lw2 = st.checkbox(
-            "Excel互換のlw2計算式を使用",
-            value=False,
-            help="チェックするとlw2の計算に簡略式（la + B/√3）を使用します"
-        )
-        H = None
-        if use_finite_cover:
-            H = st.number_input(
-                "土被り H (m)",
-                min_value=0.0,
-                max_value=200.0,
-                value=30.0,
-                step=5.0,
-                help="地表面からトンネル天端までの土被りを入力してください"
-            )
         
         # 詳細パラメータ
         st.markdown("---")
@@ -198,7 +196,7 @@ with tab1:
         if st.button("解析の実行", type="primary", use_container_width=True):
             try:
                 # 計算機インスタンスの作成
-                calculator = MurayamaCalculatorRevised(H_f, gamma, phi, coh, H, alpha, K, force_finite_cover, excel_compatible_lw2)
+                calculator = MurayamaCalculatorRevised(H_f, gamma, phi, coh, H, alpha, K, force_finite_cover)
                 
                 # パラメトリックスタディの実行
                 with st.spinner("解析を実行中..."):
