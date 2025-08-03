@@ -12,7 +12,7 @@ class MurayamaCalculatorRevised:
     """村山の式による切羽安定性計算クラス（修正版）"""
     
     def __init__(self, H_f: float, gamma: float, phi: float, c: float, 
-                 C: Optional[float] = None, alpha: float = 1.8, K: float = 1.0):
+                 H: Optional[float] = None, alpha: float = 1.8, K: float = 1.0):
         """
         パラメータの初期化
         
@@ -21,7 +21,7 @@ class MurayamaCalculatorRevised:
             gamma: 地山単位体積重量 [kN/m³]
             phi: 地山内部摩擦角 [度]
             c: 地山粘着力 [kPa]
-            C: 土被り [m] (Noneの場合は深部前提)
+            H: 土被り [m] (Noneの場合は深部前提)
             alpha: 影響幅係数 (標準: 1.8)
             K: 経験係数 (標準: 1.0, Terzaghi実験では1～1.5)
         """
@@ -30,7 +30,7 @@ class MurayamaCalculatorRevised:
         self.phi_deg = phi
         self.phi = np.radians(phi)  # ラジアンに変換
         self.c = c
-        self.C = C
+        self.H = H
         self.alpha = alpha
         self.K = K
         
@@ -59,8 +59,8 @@ class MurayamaCalculatorRevised:
         if self.c < 0:
             errors.append("粘着力cは負の値にはなりません")
             
-        if self.C is not None and self.C < 0:
-            errors.append("土被りCは負の値にはなりません")
+        if self.H is not None and self.H < 0:
+            errors.append("土被りHは負の値にはなりません")
             
         if self.alpha <= 0:
             errors.append("影響幅係数αは正の値である必要があります")
@@ -116,15 +116,14 @@ class MurayamaCalculatorRevised:
         B_eff = (self.alpha / 2) * B
         
         # 深部条件の判定（土被りが幅の1.5倍以上）
-        is_deep = (self.C is None) or (self.C > 1.5 * B)
+        is_deep = (self.H is None) or (self.H > 1.5 * B)
         
         if is_deep:
             # 深部前提：角括弧を1とみなす
             q = (self.alpha * B * (self.gamma - 2 * self.c / (self.alpha * B))) / (2 * self.K * np.tan(self.phi))
         else:
             # 有限土被りの場合
-            H = self.C  # 土被り
-            exp_term = 1 - np.exp(-2 * self.K * H * np.tan(self.phi) / (self.alpha * B))
+            exp_term = 1 - np.exp(-2 * self.K * self.H * np.tan(self.phi) / (self.alpha * B))
             q = (self.alpha * B * (self.gamma - 2 * self.c / (self.alpha * B))) / (2 * self.K * np.tan(self.phi)) * exp_term
         
         return q  # 負の値も許容

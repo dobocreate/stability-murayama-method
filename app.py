@@ -111,10 +111,10 @@ with tab1:
         st.subheader("土被り条件")
         
         use_finite_cover = st.checkbox("有限土被りを考慮する", value=False)
-        C = None
+        H = None
         if use_finite_cover:
-            C = st.number_input(
-                "土被り C (m)",
+            H = st.number_input(
+                "土被り H (m)",
                 min_value=0.0,
                 max_value=200.0,
                 value=30.0,
@@ -187,7 +187,7 @@ with tab1:
         if st.button("解析の実行", type="primary", use_container_width=True):
             try:
                 # 計算機インスタンスの作成
-                calculator = MurayamaCalculatorRevised(H_f, gamma, phi, c, C, alpha, K)
+                calculator = MurayamaCalculatorRevised(H_f, gamma, phi, c, H, alpha, K)
                 
                 # パラメトリックスタディの実行
                 with st.spinner("解析を実行中..."):
