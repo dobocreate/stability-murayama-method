@@ -34,9 +34,6 @@ class MurayamaCalculatorRevised:
         self.alpha = alpha
         self.K = K
         
-        # 深部条件の判定（土被りが幅の1.5倍以上）
-        self.is_deep = C is None or C > 1.5 * H_f
-        
         # 入力値の妥当性チェック
         self._validate_inputs()
     
@@ -118,8 +115,10 @@ class MurayamaCalculatorRevised:
         # 有効幅
         B_eff = (self.alpha / 2) * B
         
-        # 深部条件または土被りが与えられていない場合
-        if self.is_deep:
+        # 深部条件の判定（土被りが幅の1.5倍以上）
+        is_deep = (self.C is None) or (self.C > 1.5 * B)
+        
+        if is_deep:
             # 深部前提：角括弧を1とみなす
             q = (self.alpha * B * (self.gamma - 2 * self.c / (self.alpha * B))) / (2 * self.K * np.tan(self.phi))
         else:
@@ -128,9 +127,9 @@ class MurayamaCalculatorRevised:
             exp_term = 1 - np.exp(-2 * self.K * H * np.tan(self.phi) / (self.alpha * B))
             q = (self.alpha * B * (self.gamma - 2 * self.c / (self.alpha * B))) / (2 * self.K * np.tan(self.phi)) * exp_term
         
-        return max(0, q)  # 負の値を防ぐ
+        return q  # 負の値も許容
     
-    def calculate_self_weight(self, r0: float, rd: float, theta_d: float, B: float) -> Dict[str, float]:
+    def calculate_self_weight(self, r0: float, rd: float, theta_d: float, B: float, la: float) -> Dict[str, float]:
         """
         自重の等価合力と作用点の計算
         
@@ -139,6 +138,7 @@ class MurayamaCalculatorRevised:
             rd: 終端半径 [m]
             theta_d: 探索角度 [ラジアン]
             B: 滑り面の水平投影幅 [m]
+            la: 滑り面上端の水平位置 [m]
             
         Returns:
             自重関連のパラメータ (Wf, lw)
@@ -150,33 +150,47 @@ class MurayamaCalculatorRevised:
         
         Wf = self.gamma * (term1 + term2 - term3)
         
-        # 作用点の計算（より正確な計算）
+        # 作用点の計算（Excelと整合）
         # 三角形部分
         w1 = self.gamma * self.H_f * B / 2
-        lw1 = B / 3  # 三角形の重心は底辺から1/3
+        lw1 = la + B / 3  # 重心位置 = la + B/3（laのオフセットを含む）
         
-        # 曲線領域の重心計算（より正確な式）
+        # 曲線領域の重心計算
         w2 = self.gamma * (term2 - term3)
         
         # 曲線領域の重心位置（対数らせんの重心）
-        if abs(theta_d) > 1e-10 and abs(np.tan(self.phi)) > 1e-10:
-            # 対数らせん領域の重心x座標の解析的計算
+        if abs(theta_d) > 1e-10 and abs(np.tan(self.phi)) > 1e-10 and abs(w2) > 1e-10:
+            # 対数らせん領域の厳密な重心計算
             k = np.tan(self.phi)
-            factor1 = (r0**3 / (9 * k**2 + 1)) * (np.exp(3 * k * theta_d) - 1)
-            factor2 = (3 * k * np.cos(theta_d) + np.sin(theta_d)) * np.exp(3 * k * theta_d)
-            factor3 = 3 * k
-            x_centroid_curve = (factor1 / (3 * k)) * (factor2 - factor3) / (term2 - term3) if abs(w2) > 1e-10 else B * 0.6
             
-            # 座標変換して切羽からの距離に
-            lw2 = min(B * 0.8, max(B * 0.4, x_centroid_curve))  # 安全のため範囲制限
+            # 面積（既に計算済み: term2 - term3）
+            A2 = term2 - term3
+            
+            # x方向の一次モーメント（厳密積分）
+            # M2x = (2/3) * ∫r³cosθ dθ for logarithmic spiral r = r0*exp(k*θ)
+            if abs(9 * k**2 + 1) > 1e-10:
+                M2x_term1 = (2/3) * (r0**3 / (9 * k**2 + 1)) * np.exp(3 * k * theta_d)
+                M2x_term2 = (3 * k * np.cos(theta_d) + np.sin(theta_d))
+                M2x_term3 = (2/3) * (r0**3 / (9 * k**2 + 1)) * 3 * k
+                M2x = M2x_term1 * M2x_term2 - M2x_term3
+                
+                # 重心のx座標
+                x2 = M2x / A2
+            else:
+                # k ≈ 0 の場合の近似
+                x2 = r0 * (1 + theta_d / 2)
+            
+            # laのオフセットを加える
+            lw2 = la + x2
         else:
-            lw2 = B * 0.6  # デフォルト近似値
+            # デフォルト値（三角形部分と同じ位置）
+            lw2 = lw1
         
         # 合成重心
         if abs(w1 + w2) > 1e-10:
             lw = (w1 * lw1 + w2 * lw2) / (w1 + w2)
         else:
-            lw = B / 2
+            lw = la + B / 2
         
         return {
             'Wf': Wf,
@@ -223,7 +237,7 @@ class MurayamaCalculatorRevised:
         q = self.calculate_equivalent_surcharge(B)
         
         # 自重の計算
-        weight_params = self.calculate_self_weight(r0, rd, theta_d, B)
+        weight_params = self.calculate_self_weight(r0, rd, theta_d, B, la)
         Wf = weight_params['Wf']
         lw = weight_params['lw']
         
