@@ -282,9 +282,14 @@ with tab1:
             # 必要支保圧の分布グラフ
             fig = go.Figure()
             
+            # theta_valuesを取得
+            theta_values = results.get('theta_degrees', [])
+            
             # P値の抽出
-            P_values = [r['P_kN_m2'] for r in results['detailed_results']]
-            theta_values = results['theta_degrees']
+            if results.get('detailed_results') and len(results['detailed_results']) > 0:
+                P_values = [r.get('P_kN_m2', 0) for r in results['detailed_results']]
+            else:
+                P_values = []
             
             fig.add_trace(go.Scatter(
                 x=theta_values,
@@ -321,8 +326,17 @@ with tab1:
                 # r0とBの変化
                 fig1 = go.Figure()
                 
-                r0_values = [r['r0_m'] for r in results['detailed_results']]
-                B_values = [r['B_m'] for r in results['detailed_results']]
+                # theta_valuesを取得
+                theta_values = results.get('theta_degrees', [])
+                
+                # 詳細結果が存在するか確認
+                if results.get('detailed_results') and len(results['detailed_results']) > 0:
+                    r0_values = [r.get('r0_m', 0) for r in results['detailed_results']]
+                    B_values = [r.get('B_m', 0) for r in results['detailed_results']]
+                else:
+                    # デフォルト値を使用
+                    r0_values = [results.get('critical_r0', 0)] * len(theta_values)
+                    B_values = [0] * len(theta_values)
                 
                 fig1.add_trace(go.Scatter(
                     x=theta_values,
@@ -354,8 +368,13 @@ with tab1:
                 # 荷重パラメータの変化
                 fig2 = go.Figure()
                 
-                q_values = [r['q_kN_m2'] for r in results['detailed_results']]
-                Wf_values = [r['Wf_kN'] for r in results['detailed_results']]
+                # 安全な値の取得
+                if results.get('detailed_results') and len(results['detailed_results']) > 0:
+                    q_values = [r.get('q_kN_m2', 0) for r in results['detailed_results']]
+                    Wf_values = [r.get('Wf_kN', 0) for r in results['detailed_results']]
+                else:
+                    q_values = [0] * len(theta_values)
+                    Wf_values = [0] * len(theta_values)
                 
                 fig2.add_trace(go.Scatter(
                     x=theta_values,
