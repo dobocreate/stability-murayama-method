@@ -12,8 +12,7 @@ class MurayamaCalculatorRevised:
     """村山の式による切羽安定性計算クラス（修正版）"""
     
     def __init__(self, H_f: float, gamma: float, phi: float, coh: float, 
-                 H: Optional[float] = None, alpha: float = 1.8, K: float = 1.0,
-                 force_finite_cover: bool = False, excel_compatible_lw2: bool = False):
+                 H: Optional[float] = None, alpha: float = 1.8, K: float = 1.0):
         """
         パラメータの初期化
         
@@ -25,8 +24,6 @@ class MurayamaCalculatorRevised:
             H: 土被り [m] (Noneの場合は深部前提)
             alpha: 影響幅係数 (標準: 1.8)
             K: 経験係数 (標準: 1.0, Terzaghi実験では1～1.5)
-            force_finite_cover: 有限土被り式を強制的に使用するフラグ (標準: False)
-            excel_compatible_lw2: Excel互換のlw2計算式を使用するフラグ (標準: False)
         """
         self.H_f = H_f
         self.gamma = gamma
@@ -36,8 +33,6 @@ class MurayamaCalculatorRevised:
         self.H = H
         self.alpha = alpha
         self.K = K
-        self.force_finite_cover = force_finite_cover
-        self.excel_compatible_lw2 = excel_compatible_lw2
         
         # 入力値の妥当性チェック
         self._validate_inputs()
@@ -108,140 +103,63 @@ class MurayamaCalculatorRevised:
         }
     
     def calculate_equivalent_surcharge(self, B: float) -> float:
-        """
-        上載荷重の等価合力 q をユーザー式で算定（指数の"中"に tanφ）。深部/有限は B に基づき都度評価。
-        
-        Args:
-            B: 滑り面の水平投影幅 [m]
-            
-        Returns:
-            等価合力 q [kN/m²]
-        """
-        # force_finite_coverがTrueの場合は常に有限土被り式を使用
-        if self.force_finite_cover:
-            is_deep = False
-        else:
-            # 深部条件の判定（土被りが幅の1.5倍以上：便宜上の閾値）
-            is_deep = (self.H is None) or (self.H > 1.5 * B)
-        
-        if is_deep:
-            # 深部前提（角括弧→1）
-            q = (self.alpha * B * (self.gamma - 2 * self.coh / (self.alpha * B))) / (2 * self.K * np.tan(self.phi))
-        else:
-            # 有限土被り（指数の"中"に tanφ を掛ける）
-            fac = 1.0 - np.exp(-2.0 * self.K * self.H * np.tan(self.phi) / (self.alpha * B))
-            q = (self.alpha * B * (self.gamma - 2 * self.coh / (self.alpha * B))) / (2 * self.K * np.tan(self.phi)) * fac
-        
-        return float(q)  # 丸めない（負値も許容：Excel整合）  # 丸めない（負値も許容：Excel整合）
+    # 上載荷重の等価合力 q をユーザー式で算定（指数の“中”に tanφ）。深部/有限は B に基づき都度評価。
+    # 深部条件の判定（土被りが幅の1.5倍以上：便宜上の閾値）
+    is_deep = (self.H is None) or (self.H > 1.5 * B)
+    if is_deep:
+        # 深部前提（角括弧→1）
+        q = (self.alpha * B * (self.gamma - 2 * self.coh / (self.alpha * B))) / (2 * self.K * np.tan(self.phi))
+    else:
+        # 有限土被り（指数の“中”に tanφ を掛ける）
+        fac = 1.0 - np.exp(-2.0 * self.K * self.H * np.tan(self.phi) / (self.alpha * B))
+        q = (self.alpha * B * (self.gamma - 2 * self.coh / (self.alpha * B))) / (2 * self.K * np.tan(self.phi)) * fac
+    return float(q)  # 丸めない（負値も許容：Excel整合）
+
     
     def calculate_self_weight(self, r0: float, rd: float, theta_d: float, B: float, la: float) -> Dict[str, float]:
-        """
-        自重の等価合力と作用点の計算（Excel M9式準拠）
-        
-        Args:
-            r0: 初期半径 [m]
-            rd: 終端半径 [m]
-            theta_d: 探索角度 [ラジアン]
-            B: 滑り面の水平投影幅 [m]
-            la: 滑り面上端の水平位置 [m]
-            
-        Returns:
-            自重関連のパラメータ (Wf, lw, w1, lw1, w2, lw2)
-        """
-        # 自重の等価合力（1m幅当たり）
-        term1 = self.H_f * B / 2  # 三角形部分
-        term2 = (rd**2 - r0**2) / (4 * np.tan(self.phi))  # 曲線領域
-        term3 = r0 * rd * np.sin(theta_d) / 2
-        
-        Wf = self.gamma * (term1 + term2 - term3)
-        
-        # 作用点の計算（Excel M9式準拠）
-        # 三角形部分
-        w1 = self.gamma * self.H_f * B / 2
-        lw1 = la + B / 3
-        
-        # 曲線部分の重量
-        w2 = self.gamma * (term2 - term3)
-        
-        # Excel互換モードの場合は簡略式を使用
-        if self.excel_compatible_lw2:
-            lw2 = la + B / np.sqrt(3)
-        else:
-            # 曲線部分の重心（Excel M9式の実装）
-            if abs(theta_d) > 1e-12 and abs(np.tan(self.phi)) > 1e-12 and abs(w2) > 1e-12:
-                # 中間パラメータの計算（ExcelのS,T,U,V）
-                O = np.hypot(B, self.H_f)  # 切羽の対角線長
-                P = np.arctan2(self.H_f, B)  # 方向角（rad）
-                
-                # S（Excelのx）の計算
-                S = np.sqrt((O**2)/4.0 + r0**2 - O*r0*np.cos(P + self.phi))
-                
-                # T（Excelのθc）の計算
-                R = r0 * np.sin(P + self.phi)
-                cos_arg = np.clip(R / S, -1.0, 1.0) if S > 0.0 else 1.0
-                T = np.arccos(cos_arg) - (P + self.phi - np.pi/2.0)
-                
-                # U（Excelのh）の計算
-                U = (r0*np.exp(T*np.tan(self.phi)) - S) * (r0*np.sin(P + self.phi)) / (S if S != 0.0 else 1.0)
-                
-                # V（Excelのβ）の計算
-                if abs(U) > 1e-12:
-                    V = np.pi - 2*np.arctan(O/(2*U))
-                else:
-                    V = np.pi
-                
-                # Excel M9式の実装
-                # 第1項
-                term1_lw2 = S * np.cos(self.phi + T)
-                
-                # 第2項の計算
-                cos_V = np.cos(V)
-                sin_V = np.sin(V)
-                
-                if abs(1 - cos_V) > 1e-12:
-                    # 各要素の計算
-                    A = U / (1 - cos_V)
-                    B_num = 1 - cos_V**2
-                    B_den = V - sin_V * cos_V
-                    
-                    if abs(B_den) > 1e-12:
-                        B_frac = B_num / B_den
-                        C = sin_V
-                        D = U * cos_V / (1 - cos_V)
-                        
-                        # 第2項（Excel準拠：常にB/H_fを使用）
-                        cos_direction = np.cos(np.arctan2(B, self.H_f))
-                        
-                        term2_inner = A * B_frac * C - D
-                        term2_lw2 = (2.0/3.0) * term2_inner * cos_direction
-                        
-                        lw2 = term1_lw2 + term2_lw2
-                    else:
-                        # B_denが0に近い場合
-                        lw2 = term1_lw2 + (2.0/3.0)*U*np.cos(np.arctan2(B, self.H_f))
-                else:
-                    # 1-cos(V)が0に近い場合
-                    lw2 = term1_lw2 + (2.0/3.0)*U*np.cos(np.arctan2(B, self.H_f))
-                
-                # 数値安定性チェック
-                if not np.isfinite(lw2):
-                    lw2 = la + (2.0/3.0)*B
-            else:
-                lw2 = la + (2.0/3.0)*B  # フォールバック
-        
-        # 合成重心（重み付き平均）
-        if abs(w1 + w2) > 1e-12:
-            lw = (w1 * lw1 + w2 * lw2) / (w1 + w2)
-        else:
-            lw = la + B / 2
-        
+# 自重の等価合力（1m幅当たり）
+term1 = self.H_f * B / 2  # 三角形部分
+term2 = (rd**2 - r0**2) / (4 * np.tan(self.phi))  # 曲線領域
+term3 = r0 * rd * np.sin(theta_d) / 2
+
+Wf = self.gamma * (term1 + term2 - term3)
+
+# 作用点の計算（Excelと整合）
+# 三角形部分
+w1 = self.gamma * self.H_f * B / 2
+lw1 = la + B / 3  # ★修正：フェイス基準（la オフセット含む）
+
+# 曲線領域の重心計算（S, T, U を用いた厳密式）
+w2 = self.gamma * (term2 - term3)
+if abs(theta_d) > 1e-12 and abs(np.tan(self.phi)) > 1e-12 and abs(w2) > 1e-12:
+    k = np.tan(self.phi)
+    O = np.hypot(B, self.H_f)                 # 斜辺長
+    P = np.arctan2(self.H_f, B)               # 方向角（rad）
+    S = np.sqrt((O**2)/4.0 + r0**2 - O*r0*np.cos(P + self.phi))
+    R = r0 * np.sin(P + self.phi)
+    cos_arg = np.clip(R / S, -1.0, 1.0) if S > 0.0 else 1.0
+    T = np.arccos(cos_arg) - (P + self.phi - np.pi/2.0)
+    U = (r0*np.exp(T*k) - S) * (r0*np.sin(P + self.phi)) / (S if S != 0.0 else 1.0)
+    # ★修正：Excel 同等の lw2
+    lw2 = S*np.cos(self.phi + T) + (2.0/3.0)*U*np.cos(np.arctan2(B, self.H_f))
+    if not np.isfinite(lw2):
+        lw2 = la + (2.0/3.0)*B
+else:
+    lw2 = la + (2.0/3.0)*B  # フォールバック（角度極小など）
+
+# 合成重心（重み付き平均）
+if abs(w1 + w2) > 1e-12:
+    lw = (w1 * lw1 + w2 * lw2) / (w1 + w2)
+else:
+    lw = la + B / 2
+
+return {
+    'Wf': Wf,
+    'lw': lw
+}
         return {
             'Wf': Wf,
-            'lw': lw,
-            'w1': w1,
-            'lw1': lw1,
-            'w2': w2,
-            'lw2': lw2
+            'lw': lw
         }
     
     def calculate_cohesion_moment(self, r0: float, rd: float) -> float:
@@ -287,10 +205,6 @@ class MurayamaCalculatorRevised:
         weight_params = self.calculate_self_weight(r0, rd, theta_d, B, la)
         Wf = weight_params['Wf']
         lw = weight_params['lw']
-        w1 = weight_params['w1']
-        lw1 = weight_params['lw1']
-        w2 = weight_params['w2']
-        lw2 = weight_params['lw2']
         
         # 粘着抵抗モーメント
         Mc = self.calculate_cohesion_moment(r0, rd)
@@ -308,10 +222,6 @@ class MurayamaCalculatorRevised:
             'q': q,
             'Wf': Wf,
             'lw': lw,
-            'w1': w1,
-            'lw1': lw1,
-            'w2': w2,
-            'lw2': lw2,
             'Mc': Mc,
             'numerator': numerator
         }

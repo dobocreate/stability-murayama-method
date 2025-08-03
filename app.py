@@ -97,8 +97,8 @@ with tab1:
             help="地山の内部摩擦角を入力してください"
         )
         
-        c = st.number_input(
-            "地山粘着力 c (kPa)",
+        coh = st.number_input(
+            "地山粘着力 coh (kPa)",
             min_value=0.0,
             max_value=1000.0,
             value=20.0,
@@ -111,6 +111,17 @@ with tab1:
         st.subheader("土被り条件")
         
         use_finite_cover = st.checkbox("有限土被りを考慮する", value=False)
+        force_finite_cover = st.checkbox(
+            "有限土被り式を強制的に使用", 
+            value=False,
+            help="チェックすると深部条件でも常に有限土被り式を使用します（Excel互換モード）"
+        )
+        
+        excel_compatible_lw2 = st.checkbox(
+            "Excel互換のlw2計算式を使用",
+            value=False,
+            help="チェックするとlw2の計算に簡略式（la + B/√3）を使用します"
+        )
         H = None
         if use_finite_cover:
             H = st.number_input(
@@ -187,7 +198,7 @@ with tab1:
         if st.button("解析の実行", type="primary", use_container_width=True):
             try:
                 # 計算機インスタンスの作成
-                calculator = MurayamaCalculatorRevised(H_f, gamma, phi, c, H, alpha, K)
+                calculator = MurayamaCalculatorRevised(H_f, gamma, phi, coh, H, alpha, K, force_finite_cover, excel_compatible_lw2)
                 
                 # パラメトリックスタディの実行
                 with st.spinner("解析を実行中..."):
@@ -406,9 +417,9 @@ with tab1:
             # 詳細データの表示
             st.write("**入力パラメータ**")
             input_data = {
-                "パラメータ": ["切羽高さ H_f", "地山単位体積重量 γ", "地山内部摩擦角 φ", "地山粘着力 c",
+                "パラメータ": ["切羽高さ H_f", "地山単位体積重量 γ", "地山内部摩擦角 φ", "地山粘着力 coh",
                         "土被り H", "影響幅係数 α", "経験係数 K"],
-                "値": [f"{H_f} m", f"{gamma} kN/m³", f"{phi}°", f"{c} kPa",
+                "値": [f"{H_f} m", f"{gamma} kN/m³", f"{phi}°", f"{coh} kPa",
                     f"{H} m" if H is not None else "深部前提", f"{alpha}", f"{K}"],
             }
             st.table(pd.DataFrame(input_data))
@@ -479,7 +490,7 @@ with tab2:
     
     - **r₀を入力から削除**：幾何の閉合式から内部で自動決定
     - **支保圧の作用腕**：l_p = r₀sinφ + H_f/2 に統一
-    - **粘着抵抗モーメント**：閉形式 Mc = c(rd² - r₀²)/(2tanφ) を採用
+    - **粘着抵抗モーメント**：閉形式 Mc = coh(rd² - r₀²)/(2tanφ) を採用
     - **上載荷重の等価合力**：影響幅係数αと経験係数Kを導入
     - **有限土被りの考慮**：深部前提と有限土被りの切り替えが可能
     """)
@@ -513,7 +524,7 @@ with tab2:
     """)
     
     st.subheader("4. 粘着の抵抗モーメント")
-    st.latex(r"M_c = \frac{c(r_d^2 - r_0^2)}{2\tan\phi}")
+    st.latex(r"M_c = \frac{coh(r_d^2 - r_0^2)}{2\tan\phi}")
     
     st.subheader("5. 支保圧の算定")
     st.latex(r"""
@@ -531,7 +542,7 @@ with tab3:
     st.subheader("基本的な操作手順")
     st.write("""
     1. **地盤条件の入力**
-       - 切羽高さ H_f、単位体積重量 γ、内部摩擦角 φ、粘着力 c を入力
+       - 切羽高さ H_f、単位体積重量 γ、内部摩擦角 φ、粘着力 coh を入力
        - 粘着力の単位は **kPa** です（旧版の kN/m² から変更）
     
     2. **土被り条件の設定**
@@ -565,17 +576,17 @@ with tab3:
     **軟岩（風化岩）の場合**
     - γ: 22～24 kN/m³
     - φ: 30～40 度
-    - c: 30～50 kPa（旧: kN/m²）
+    - coh: 30～50 kPa（旧: kN/m²）
     
     **土砂地山の場合**
     - γ: 18～20 kN/m³
     - φ: 25～35 度
-    - c: 10～30 kPa
+    - coh: 10～30 kPa
     
     **粘性土の場合**
     - γ: 16～18 kN/m³
     - φ: 20～30 度
-    - c: 20～40 kPa
+    - coh: 20～40 kPa
     """)
 
 # フッター

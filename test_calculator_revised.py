@@ -14,10 +14,10 @@ def test_basic_calculation():
     H_f = 10.0  # 切羽高さ [m]
     gamma = 20.0  # 単位体積重量 [kN/m³]
     phi = 30.0  # 内部摩擦角 [度]
-    c = 20.0  # 粘着力 [kPa]
+    coh = 20.0  # 粘着力 [kPa]
     
     # 深部前提（土被りなし）
-    calculator = MurayamaCalculatorRevised(H_f, gamma, phi, c)
+    calculator = MurayamaCalculatorRevised(H_f, gamma, phi, coh)
     
     # 特定角度での計算
     theta_d_deg = 45.0
@@ -29,7 +29,7 @@ def test_basic_calculation():
     print(f"  H_f = {H_f} m")
     print(f"  γ = {gamma} kN/m³")
     print(f"  φ = {phi}°")
-    print(f"  c = {c} kPa")
+    print(f"  coh = {coh} kPa")
     print(f"  θ_d = {theta_d_deg}°")
     print()
     print(f"幾何パラメータ:")
@@ -60,9 +60,9 @@ def test_critical_pressure():
     H_f = 10.0
     gamma = 20.0
     phi = 30.0
-    c = 20.0
+    coh = 20.0
     
-    calculator = MurayamaCalculatorRevised(H_f, gamma, phi, c)
+    calculator = MurayamaCalculatorRevised(H_f, gamma, phi, coh)
     
     # 臨界圧の探索
     critical = calculator.find_critical_pressure(theta_range=(20, 80), theta_step=1.0)
@@ -83,31 +83,82 @@ def test_finite_cover():
     H_f = 10.0
     gamma = 20.0
     phi = 30.0
-    c = 20.0
+    coh = 20.0
+    
+    print(f"入力パラメータ:")
+    print(f"  H_f = {H_f} m")
+    print(f"  γ = {gamma} kN/m³")
+    print(f"  φ = {phi}°")
+    print(f"  coh = {coh} kPa")
+    print()
     
     # 深部前提
-    calc_deep = MurayamaCalculatorRevised(H_f, gamma, phi, c, C=None)
+    calc_deep = MurayamaCalculatorRevised(H_f, gamma, phi, coh, H=None)
     critical_deep = calc_deep.find_critical_pressure()
     
     # 有限土被り（浅い）
-    calc_shallow = MurayamaCalculatorRevised(H_f, gamma, phi, c, C=15.0)  # 1.5*H_f
+    calc_shallow = MurayamaCalculatorRevised(H_f, gamma, phi, coh, H=0) # 1.5*H_f
     critical_shallow = calc_shallow.find_critical_pressure()
     
     # 有限土被り（深い）
-    calc_medium = MurayamaCalculatorRevised(H_f, gamma, phi, c, C=50.0)
+    calc_medium = MurayamaCalculatorRevised(H_f, gamma, phi, coh, H=50.0)
     critical_medium = calc_medium.find_critical_pressure()
     
-    print(f"深部前提（C = ∞）:")
-    print(f"  P_max = {critical_deep['max_P']:.3f} kN/m²")
-    print(f"  θ_d* = {critical_deep['critical_theta_d_deg']:.1f}°")
+    # 深部前提の詳細結果
+    print(f"深部前提（H = ∞）:")
+    print(f"  最大必要支保圧: P_max = {critical_deep['max_P']:.3f} kN/m²")
+    print(f"  臨界角度: θ_d* = {critical_deep['critical_theta_d_deg']:.1f}°")
+    print(f"  幾何パラメータ:")
+    geom_deep = critical_deep['critical_geometry']
+    print(f"    r₀ = {geom_deep['r0']:.3f} m")
+    print(f"    r_d = {geom_deep['rd']:.3f} m")
+    print(f"    B = {geom_deep['B']:.3f} m")
+    print(f"    l_a = {geom_deep['la']:.3f} m")
+    print(f"    l_p = {geom_deep['lp']:.3f} m")
+    print(f"  荷重パラメータ:")
+    params_deep = critical_deep['critical_params']
+    print(f"    q = {params_deep['q']:.3f} kN/m²")
+    print(f"    W_f = {params_deep['Wf']:.3f} kN")
+    print(f"    l_w = {params_deep['lw']:.3f} m")
+    print(f"    M_c = {params_deep['Mc']:.3f} kN·m")
     print()
-    print(f"有限土被り（C = {15.0} m）:")
-    print(f"  P_max = {critical_shallow['max_P']:.3f} kN/m²")
-    print(f"  θ_d* = {critical_shallow['critical_theta_d_deg']:.1f}°")
+    
+    # 有限土被り（浅い）の詳細結果
+    print(f"有限土被り（H = {0} m）:")
+    print(f"  最大必要支保圧: P_max = {critical_shallow['max_P']:.3f} kN/m²")
+    print(f"  臨界角度: θ_d* = {critical_shallow['critical_theta_d_deg']:.1f}°")
+    print(f"  幾何パラメータ:")
+    geom_shallow = critical_shallow['critical_geometry']
+    print(f"    r₀ = {geom_shallow['r0']:.3f} m")
+    print(f"    r_d = {geom_shallow['rd']:.3f} m")
+    print(f"    B = {geom_shallow['B']:.3f} m")
+    print(f"    l_a = {geom_shallow['la']:.3f} m")
+    print(f"    l_p = {geom_shallow['lp']:.3f} m")
+    print(f"  荷重パラメータ:")
+    params_shallow = critical_shallow['critical_params']
+    print(f"    q = {params_shallow['q']:.3f} kN/m²")
+    print(f"    W_f = {params_shallow['Wf']:.3f} kN")
+    print(f"    l_w = {params_shallow['lw']:.3f} m")
+    print(f"    M_c = {params_shallow['Mc']:.3f} kN·m")
     print()
-    print(f"有限土被り（C = {50.0} m）:")
-    print(f"  P_max = {critical_medium['max_P']:.3f} kN/m²")
-    print(f"  θ_d* = {critical_medium['critical_theta_d_deg']:.1f}°")
+    
+    # 有限土被り（深い）の詳細結果
+    print(f"有限土被り（H = {50.0} m）:")
+    print(f"  最大必要支保圧: P_max = {critical_medium['max_P']:.3f} kN/m²")
+    print(f"  臨界角度: θ_d* = {critical_medium['critical_theta_d_deg']:.1f}°")
+    print(f"  幾何パラメータ:")
+    geom_medium = critical_medium['critical_geometry']
+    print(f"    r₀ = {geom_medium['r0']:.3f} m")
+    print(f"    r_d = {geom_medium['rd']:.3f} m")
+    print(f"    B = {geom_medium['B']:.3f} m")
+    print(f"    l_a = {geom_medium['la']:.3f} m")
+    print(f"    l_p = {geom_medium['lp']:.3f} m")
+    print(f"  荷重パラメータ:")
+    params_medium = critical_medium['critical_params']
+    print(f"    q = {params_medium['q']:.3f} kN/m²")
+    print(f"    W_f = {params_medium['Wf']:.3f} kN")
+    print(f"    l_w = {params_medium['lw']:.3f} m")
+    print(f"    M_c = {params_medium['Mc']:.3f} kN·m")
     print()
 
 
@@ -120,7 +171,7 @@ def test_parameter_sensitivity():
         'H_f': 10.0,
         'gamma': 20.0,
         'phi': 30.0,
-        'c': 20.0
+        'coh': 20.0
     }
     
     # 基準計算
@@ -134,7 +185,7 @@ def test_parameter_sensitivity():
     # 各パラメータの感度
     sensitivities = {
         'phi': [20, 25, 30, 35, 40],
-        'c': [10, 15, 20, 25, 30],
+        'coh': [10, 15, 20, 25, 30],
         'gamma': [18, 19, 20, 21, 22]
     }
     
@@ -158,24 +209,24 @@ def test_coefficient_effects():
     H_f = 10.0
     gamma = 20.0
     phi = 30.0
-    c = 20.0
+    coh = 20.0
     
     # 標準係数
-    calc_standard = MurayamaCalculatorRevised(H_f, gamma, phi, c, alpha=1.8, K=1.0)
+    calc_standard = MurayamaCalculatorRevised(H_f, gamma, phi, coh, alpha=1.8, K=1.0)
     result_standard = calc_standard.find_critical_pressure()
     
     # α の影響
-    calc_alpha_low = MurayamaCalculatorRevised(H_f, gamma, phi, c, alpha=1.5, K=1.0)
+    calc_alpha_low = MurayamaCalculatorRevised(H_f, gamma, phi, coh, alpha=1.5, K=1.0)
     result_alpha_low = calc_alpha_low.find_critical_pressure()
     
-    calc_alpha_high = MurayamaCalculatorRevised(H_f, gamma, phi, c, alpha=2.0, K=1.0)
+    calc_alpha_high = MurayamaCalculatorRevised(H_f, gamma, phi, coh, alpha=2.0, K=1.0)
     result_alpha_high = calc_alpha_high.find_critical_pressure()
     
     # K の影響
-    calc_K_low = MurayamaCalculatorRevised(H_f, gamma, phi, c, alpha=1.8, K=0.8)
+    calc_K_low = MurayamaCalculatorRevised(H_f, gamma, phi, coh, alpha=1.8, K=0.8)
     result_K_low = calc_K_low.find_critical_pressure()
     
-    calc_K_high = MurayamaCalculatorRevised(H_f, gamma, phi, c, alpha=1.8, K=1.2)
+    calc_K_high = MurayamaCalculatorRevised(H_f, gamma, phi, coh, alpha=1.8, K=1.2)
     result_K_high = calc_K_high.find_critical_pressure()
     
     print(f"標準係数（α=1.8, K=1.0）:")
