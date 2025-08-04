@@ -248,12 +248,6 @@ with tab1:
             st.image("data/image.jpg", use_container_width=True)
         
         st.markdown("---")
-        
-        # 安定性の評価結果
-        st.subheader("安定性の評価結果")
-        
-        # 結果の表示（概念図のみ）
-        # 安定性評価結果は詳細計算結果の上に移動
     
     # 詳細結果の表示
     if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
@@ -288,22 +282,26 @@ with tab1:
             "計算エラー（要確認）": "⚠️"
         }
         
-        # 安定性評価の表示
-        st.markdown(
-            f"""
-            <div class="custom-metric-card">
-                <div class="metric-label">🏗️ 安定性判定</div>
-                <div class="{stability_class[results['stability']]}">
-                    {results['stability']} {emoji[results['stability']]}
-                </div>
-                <div class="metric-label">切羽は{results['stability']}状態です</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        # 安定性の評価結果
+        st.subheader("安定性の評価結果")
         
-        # カスタムメトリクスの表示（1:1の割合）
-        col2_1, col2_2 = st.columns([1, 1])
+        # 1行レイアウトで全ての評価結果を表示
+        col_eval1, col_eval2, col_eval3 = st.columns([1, 1, 1])
+        
+        with col_eval1:
+            # 安定性評価の表示
+            st.markdown(
+                f"""
+                <div class="custom-metric-card">
+                    <div class="metric-label">🏗️ 安定性判定</div>
+                    <div class="{stability_class[results['stability']]}">
+                        {results['stability']} {emoji[results['stability']]}
+                    </div>
+                    <div class="metric-label">切羽は{results['stability']}状態です</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
         
         # 必要支保圧の色分け
         max_p = results['max_P']
@@ -323,7 +321,7 @@ with tab1:
         else:
             sf_color_class = "metric-value-danger"
         
-        with col2_1:
+        with col_eval2:
             st.markdown(
                 f"""
                 <div class="custom-metric-card">
@@ -337,7 +335,7 @@ with tab1:
                 unsafe_allow_html=True
             )
         
-        with col2_2:
+        with col_eval3:
             # 安全率の表示（無限大の場合は特別な表示）
             if results['safety_factor'] == float('inf'):
                 sf_display = "∞"
