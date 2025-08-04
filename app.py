@@ -594,18 +594,6 @@ with tab1:
                 fig_sf.add_hline(y=0, line_dash="dash", line_color="red", 
                                annotation_text="P = 0 (自立限界)")
                 
-                # 臨界点のマーカー（P=0となる点、安全率=1.0）
-                fig_sf.add_trace(go.Scatter(
-                    x=[1.0],
-                    y=[0],
-                    mode='markers+text',
-                    marker=dict(size=15, color='red', symbol='x'),
-                    name='臨界点',
-                    text=[f"安全率 = 1.000"],
-                    textposition="top center",
-                    textfont=dict(size=12, color='red')
-                ))
-                
                 # 元の強度での点（現在の状態）
                 fig_sf.add_trace(go.Scatter(
                     x=[sf_result['safety_factor']],
