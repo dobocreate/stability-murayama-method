@@ -176,6 +176,9 @@ with tab1:
                 help="チェックすると深部条件（H > 1.5B）でも常に有限土被り式を使用します"
             )
         
+        # 計算実行ボタンの前にスペースを追加
+        st.write("")  # 1行分のスペース
+        
         # 計算実行ボタン
         if st.button("解析の実行", type="primary", use_container_width=True):
             try:
