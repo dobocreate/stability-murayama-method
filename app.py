@@ -121,7 +121,6 @@ with tab1:
         )
         
         # 解析パラメータ
-        st.markdown("---")
         st.subheader("解析パラメータ")
         
         st.write("**探索角度 θ_d の範囲 (度)**")
@@ -150,7 +149,6 @@ with tab1:
         st.write(f"**計算点数**: {n_points} 点（1度刻み）")
         
         # 詳細パラメータ
-        st.markdown("---")
         st.subheader("詳細パラメータ")
         
         with st.expander("係数の設定（通常は変更不要）"):
@@ -260,6 +258,7 @@ with tab1:
                     <p>最大必要支保圧: {results['max_P']:.2f} kN/m²</p>
                     <p>臨界条件: θ_d = {results['critical_theta_deg']:.1f}°</p>
                     <p>対応する r₀ = {results['critical_r0']:.2f} m</p>
+                    <p>崩壊位置までの水平距離: B = {results['critical_params']['geometry']['B']:.2f} m</p>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -273,9 +272,9 @@ with tab1:
     # 詳細結果の表示
     if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
         st.markdown("---")
-        st.subheader("詳細解析結果")
+        st.subheader("詳細計算結果")
         
-        results_tab1, results_tab2 = st.tabs(["計算結果", "結果の出力"])
+        results_tab1, results_tab2 = st.tabs(["計算結果", "結果出力"])
         
         with results_tab1:
             # 必要支保圧の分布グラフ
