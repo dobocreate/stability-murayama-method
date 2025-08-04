@@ -601,9 +601,9 @@ with tab1:
                     textfont=dict(size=12, color='red')
                 ))
                 
-                # 元の強度での点（安全率 = 1.0）
+                # 元の強度での点（現在の状態）
                 fig_sf.add_trace(go.Scatter(
-                    x=[1.0],
+                    x=[sf_result['safety_factor']],
                     y=[sf_result['original_P']],
                     mode='markers+text',
                     marker=dict(size=12, color='green', symbol='circle'),

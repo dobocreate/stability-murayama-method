@@ -466,27 +466,30 @@ class MurayamaCalculatorRevised:
             eval_min = 0.5
             eval_max = max(2.0, safety_factor * 1.2)
         
-        evaluation_safety_factors = np.linspace(eval_min, eval_max, 20)
-        # 臨界点（安全率1.0）を確実に含める
-        evaluation_safety_factors = np.append(evaluation_safety_factors, 1.0)
-        # 実際の安全率も含める
-        evaluation_safety_factors = np.append(evaluation_safety_factors, safety_factor)
-        evaluation_safety_factors = np.sort(np.unique(evaluation_safety_factors))
+        # 評価する強度低減係数の範囲を生成
+        # 注意：これらの値は強度低減係数Fであり、そのまま安全率となる
+        evaluation_factors = np.linspace(eval_min, eval_max, 20)
+        # 臨界点（F=1.0、元の強度）を確実に含める
+        evaluation_factors = np.append(evaluation_factors, 1.0)
+        # 実際の安全率（臨界強度低減係数）も含める
+        evaluation_factors = np.append(evaluation_factors, safety_factor)
+        evaluation_factors = np.sort(np.unique(evaluation_factors))
         evaluation_points = []
         
-        for eval_sf in evaluation_safety_factors:
-            # 安全率から強度を計算
+        # 各強度低減係数でのP値を計算
+        for eval_factor in evaluation_factors:
+            # 強度低減係数から強度を計算
             # c' = c/F
-            self.coh = original_coh / eval_sf
+            self.coh = original_coh / eval_factor
             # tan(φ') = tan(φ)/F
-            self.phi = np.arctan(np.tan(original_phi) / eval_sf)
+            self.phi = np.arctan(np.tan(original_phi) / eval_factor)
             self.phi_deg = np.degrees(self.phi)
             
             try:
                 result = self.calculate_support_pressure(theta_d)
                 evaluation_points.append({
-                    'factor': eval_sf,
-                    'safety_factor': eval_sf,
+                    'factor': eval_factor,
+                    'safety_factor': eval_factor,
                     'coh': self.coh,
                     'phi_deg': self.phi_deg,
                     'P': result['P']
