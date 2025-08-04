@@ -381,7 +381,11 @@ class MurayamaCalculatorRevised:
         safety_factor = 1.0 / final_factor if final_factor > 0 else float('inf')
         
         # 追加の評価点を生成（グラフ描画用）
+        # 臨界点を含むように評価点を生成
         evaluation_factors = np.linspace(0.2, 1.5, 20)
+        # 臨界点を確実に含める
+        evaluation_factors = np.append(evaluation_factors, final_factor)
+        evaluation_factors = np.sort(np.unique(evaluation_factors))
         evaluation_points = []
         
         for eval_factor in evaluation_factors:

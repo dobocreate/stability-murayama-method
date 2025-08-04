@@ -542,9 +542,6 @@ with tab1:
                         value=f"{sf_result['critical_reduction_factor']:.3f}"
                     )
                 
-                # 強度変化と必要支保圧のグラフ
-                st.write("**強度低減と必要支保圧の関係**")
-                
                 # データの準備
                 eval_points = sf_result['evaluation_points']
                 factors = [p['factor'] for p in eval_points]
