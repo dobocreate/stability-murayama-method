@@ -515,12 +515,13 @@ with tab1:
             # 安全率計算の説明
             st.write("**安全率の算出根拠**")
             st.info("""
-            本システムでは、地山強度パラメータ（粘着力cと内部摩擦角φ）を同じ割合で低減していき、
-            必要支保圧がちょうど0になる低減係数を求めることで安全率を算出しています。
+            本システムでは、地山強度パラメータ（粘着力cと内部摩擦角φ）を同じ割合で変化させて、
+            必要支保圧がちょうど0になる係数を求めることで安全率を算出しています。
             
-            **安全率 = 1.0 ÷ 低減係数**
+            - **元が不安定な場合（P > 0）**: 強度を低減してP=0となる係数を求め、安全率 = 1.0 ÷ 低減係数
+            - **元が安定な場合（P ≤ 0）**: 強度を増加してP=0となる係数を求め、安全率 = 増加係数
             
-            例：低減係数0.5で必要支保圧が0になる場合、安全率は2.0となります。
+            例：必要支保圧が正で、強度を0.5倍に低減するとP=0になる場合、安全率は2.0となります。
             """)
             
             # 安全率計算結果の取得
@@ -545,24 +546,11 @@ with tab1:
                 # データの準備
                 eval_points = sf_result['evaluation_points']
                 
-                # 安全率でソートするためのデータを作成
-                data_points = []
-                for p in eval_points:
-                    sf = 1.0/p['factor'] if p['factor'] > 0 else float('inf')
-                    data_points.append({
-                        'safety_factor': sf,
-                        'factor': p['factor'],
-                        'coh': p['coh'],
-                        'phi_deg': p['phi_deg'],
-                        'P': p['P']
-                    })
-                
-                # 安全率でソート
-                data_points = sorted(data_points, key=lambda x: x['safety_factor'])
+                # evaluation_pointsは既に安全率でソートされている
+                data_points = eval_points
                 
                 # ソート済みデータから各リストを作成
                 safety_factors = [d['safety_factor'] for d in data_points]
-                factors = [d['factor'] for d in data_points]
                 pressures = [d['P'] for d in data_points]
                 coh_values = [d['coh'] for d in data_points]
                 phi_values = [d['phi_deg'] for d in data_points]
@@ -677,7 +665,6 @@ with tab1:
                     # DataFrameの作成
                     df_sf = pd.DataFrame({
                         '安全率': safety_factors,
-                        '強度低減係数': factors,
                         '粘着力 (kPa)': coh_values,
                         '内部摩擦角 (度)': phi_values,
                         '必要支保圧 (kN/m²)': pressures

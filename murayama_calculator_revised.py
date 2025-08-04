@@ -302,6 +302,7 @@ class MurayamaCalculatorRevised:
     def calculate_true_safety_factor(self, theta_d: float) -> Dict[str, Any]:
         """
         強度定数を低減して必要支保圧が0になる低減係数を求め、真の安全率を計算
+        強度低減法：c' = c/F, tan(φ') = tan(φ)/F
         
         Args:
             theta_d: 評価角度 [ラジアン]
@@ -309,94 +310,109 @@ class MurayamaCalculatorRevised:
         Returns:
             安全率計算結果の辞書
         """
-        # 二分探索で低減係数を求める
-        lower = 0.01  # 最小低減係数
-        upper = 3.0   # 最大低減係数
-        tolerance = 0.001
-        
-        # 強度変化履歴を記録
-        reduction_history = []
+        # 元の強度定数を保存
+        original_coh = self.coh
+        original_phi = self.phi
+        original_phi_deg = self.phi_deg
         
         # まず現在の強度での必要支保圧を計算
         original_result = self.calculate_support_pressure(theta_d)
         original_P = original_result['P']
         
-        # 元の強度定数を保存
-        original_coh = self.coh
-        original_phi = self.phi
+        # 強度変化履歴を記録
+        reduction_history = []
         
         # 初期点を記録
         reduction_history.append({
             'factor': 1.0,
             'coh': original_coh,
-            'phi_deg': self.phi_deg,
+            'phi_deg': original_phi_deg,
             'P': original_P
         })
         
-        # 二分探索
+        # 二分探索でP=0となる係数を求める
+        lower = 0.1   # 最小係数
+        upper = 10.0  # 最大係数
+        tolerance = 0.001
+        
         iteration = 0
         max_iterations = 30
         
         while upper - lower > tolerance and iteration < max_iterations:
             factor = (upper + lower) / 2
             
-            # 強度定数を低減
-            self.coh = original_coh * factor
-            self.phi = self.phi * factor
+            # 強度定数を変更
+            # c' = c/F
+            self.coh = original_coh / factor
+            # tan(φ') = tan(φ)/F → φ' = arctan(tan(φ)/F)
+            self.phi = np.arctan(np.tan(original_phi) / factor)
             self.phi_deg = np.degrees(self.phi)
             
-            # 低減した強度で必要支保圧を計算
+            # 変更した強度で必要支保圧を計算
             try:
                 result = self.calculate_support_pressure(theta_d)
-                P_reduced = result['P']
+                P_modified = result['P']
                 
                 # 履歴に追加
                 reduction_history.append({
                     'factor': factor,
                     'coh': self.coh,
                     'phi_deg': self.phi_deg,
-                    'P': P_reduced
+                    'P': P_modified
                 })
                 
-                if P_reduced > 0:
-                    lower = factor  # まだ不安定なので強度を上げる必要がある
+                if P_modified > 0:
+                    # まだ不安定なので安全率を下げる（強度を上げる）
+                    upper = factor
                 else:
-                    upper = factor  # 安定しているので強度を下げられる
+                    # 安定しているので安全率を上げる（強度を下げる）
+                    lower = factor
                     
             except Exception:
-                # 計算エラーの場合は上限を下げる
-                upper = factor
+                # 計算エラーの場合は範囲を狭める
+                if factor < 1.0:
+                    lower = factor
+                else:
+                    upper = factor
             
             iteration += 1
         
-        # 最終的な低減係数
+        # 最終的な安全率
         final_factor = (upper + lower) / 2
+        # F < 1の場合は強度が増加しているので、安全率は1/F
+        if final_factor < 1.0:
+            safety_factor = 1.0 / final_factor
+        else:
+            safety_factor = final_factor
         
         # 強度定数を元に戻す
         self.coh = original_coh
         self.phi = original_phi
-        self.phi_deg = np.degrees(original_phi)
-        
-        # 安全率 = 1 / 低減係数
-        safety_factor = 1.0 / final_factor if final_factor > 0 else float('inf')
+        self.phi_deg = original_phi_deg
         
         # 追加の評価点を生成（グラフ描画用）
-        # 臨界点を含むように評価点を生成
-        evaluation_factors = np.linspace(0.2, 1.5, 20)
-        # 臨界点を確実に含める
-        evaluation_factors = np.append(evaluation_factors, final_factor)
-        evaluation_factors = np.sort(np.unique(evaluation_factors))
+        # 安全率0.5から2.0の範囲で評価点を生成
+        evaluation_safety_factors = np.linspace(0.5, 2.0, 20)
+        # 臨界点（安全率1.0）を確実に含める
+        evaluation_safety_factors = np.append(evaluation_safety_factors, 1.0)
+        # 実際の安全率も含める
+        evaluation_safety_factors = np.append(evaluation_safety_factors, safety_factor)
+        evaluation_safety_factors = np.sort(np.unique(evaluation_safety_factors))
         evaluation_points = []
         
-        for eval_factor in evaluation_factors:
-            self.coh = original_coh * eval_factor
-            self.phi = original_phi * eval_factor
+        for eval_sf in evaluation_safety_factors:
+            # 安全率から強度を計算
+            # c' = c/F
+            self.coh = original_coh / eval_sf
+            # tan(φ') = tan(φ)/F
+            self.phi = np.arctan(np.tan(original_phi) / eval_sf)
             self.phi_deg = np.degrees(self.phi)
             
             try:
                 result = self.calculate_support_pressure(theta_d)
                 evaluation_points.append({
-                    'factor': eval_factor,
+                    'factor': eval_sf,
+                    'safety_factor': eval_sf,
                     'coh': self.coh,
                     'phi_deg': self.phi_deg,
                     'P': result['P']
@@ -407,14 +423,14 @@ class MurayamaCalculatorRevised:
         # 強度定数を最終的に元に戻す
         self.coh = original_coh
         self.phi = original_phi
-        self.phi_deg = np.degrees(original_phi)
+        self.phi_deg = original_phi_deg
         
         return {
             'safety_factor': safety_factor,
             'critical_reduction_factor': final_factor,
             'original_P': original_P,
             'reduction_history': reduction_history,
-            'evaluation_points': sorted(evaluation_points, key=lambda x: x['factor']),
+            'evaluation_points': sorted(evaluation_points, key=lambda x: x['safety_factor']),
             'theta_d': theta_d,
             'theta_d_deg': np.degrees(theta_d)
         }
