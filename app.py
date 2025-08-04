@@ -175,10 +175,6 @@ with tab1:
                 value=True,
                 help="チェックすると深部条件（H > 1.5B）でも常に有限土被り式を使用します"
             )
-    
-    with col2:
-        # 安定性評価結果
-        st.subheader("安定性評価結果")
         
         # 計算実行ボタン
         if st.button("解析の実行", type="primary", use_container_width=True):
@@ -204,6 +200,19 @@ with tab1:
             except Exception as e:
                 st.error(f"計算エラー: {str(e)}")
                 st.session_state.calculated = False
+    
+    with col2:
+        # 概念図
+        st.subheader("概念図")
+        # 80%サイズで表示するため、中央の列に配置
+        col_empty1, col_image, col_empty2 = st.columns([1, 4, 1])
+        with col_image:
+            st.image("data/image.jpg", use_container_width=True)
+        
+        st.markdown("---")
+        
+        # 安定性評価結果
+        st.subheader("安定性評価結果")
         
         # 結果の表示
         if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
@@ -253,14 +262,6 @@ with tab1:
                 """,
                 unsafe_allow_html=True
             )
-        
-        # 概念図
-        st.markdown("---")
-        st.subheader("概念図")
-        # 80%サイズで表示するため、中央の列に配置
-        col_empty1, col_image, col_empty2 = st.columns([1, 4, 1])
-        with col_image:
-            st.image("data/image.jpg", use_container_width=True)
     
     # 詳細結果の表示
     if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
