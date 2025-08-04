@@ -264,10 +264,10 @@ with tab1:
                 unsafe_allow_html=True
             )
         
-        # 解析概念図
+        # 概念図
         st.markdown("---")
-        st.subheader("解析概念図")
-        st.info("村山の式による切羽安定解析：対数らせん滑り面を仮定した極限つり合い法（修正版）")
+        st.subheader("概念図")
+        st.image("data/image.jpg", use_column_width=True)
     
     # 詳細結果の表示
     if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
