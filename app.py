@@ -348,8 +348,6 @@ with tab1:
                 }
                 st.table(pd.DataFrame(summary_data))
             
-            # CSV出力機能
-            st.write("**データエクスポート**")
             
             # 全角度範囲での詳細な計算結果を生成
             calculator = st.session_state.calculator
@@ -430,7 +428,16 @@ with tab1:
                 preview_max = min(len(df_detailed_jp), critical_index + 11)
             
             preview_df = df_detailed_jp.iloc[preview_min:preview_max]
-            st.dataframe(preview_df)
+            
+            # 臨界角度行をピンク色で強調表示
+            def highlight_critical_row(row):
+                if abs(float(row['探索角度θ_d (度)']) - critical_theta) < 0.5:
+                    return ['background-color: #FFB6C1'] * len(row)  # ピンク色
+                else:
+                    return [''] * len(row)
+            
+            styled_preview = preview_df.style.apply(highlight_critical_row, axis=1)
+            st.dataframe(styled_preview, use_container_width=True)
             
             # ダウンロードボタン
             st.download_button(
