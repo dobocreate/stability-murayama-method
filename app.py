@@ -101,9 +101,9 @@ with tab1:
         st.subheader("地盤条件")
         
         # 2列レイアウトで配置
-        col1, col2 = st.columns(2)
+        ground_col1, ground_col2 = st.columns(2)
         
-        with col1:
+        with ground_col1:
             # 土被り（最初に配置）
             H = st.number_input(
                 "土被り H (m)",
@@ -124,7 +124,7 @@ with tab1:
                 help="トンネル断面の高さを入力してください"
             )
         
-        with col2:
+        with ground_col2:
             # 地山単位体積重量
             gamma = st.number_input(
                 "地山単位体積重量 γ (kN/m³)",
