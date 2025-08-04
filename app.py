@@ -30,10 +30,12 @@ st.markdown("""
         height: 50px;
         padding: 0px 20px;
     }
-    .metric-container {
-        background-color: #f0f2f6;
+    .stability-card {
+        background-color: #ffffff;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
         padding: 20px;
-        border-radius: 10px;
+        margin: 10px 0;
         text-align: center;
     }
     .stability-stable {
@@ -57,13 +59,7 @@ st.markdown("""
         border-radius: 12px;
         padding: 20px;
         margin: 10px 0;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         text-align: center;
-        transition: transform 0.2s;
-    }
-    .custom-metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
     .metric-label {
         font-size: 1rem;
@@ -268,11 +264,12 @@ with tab1:
             # 安定性評価の表示
             st.markdown(
                 f"""
-                <div class="metric-container">
+                <div class="custom-metric-card">
+                    <div class="metric-label">🏗️ 安定性判定</div>
                     <div class="{stability_class[results['stability']]}">
                         {results['stability']} {emoji[results['stability']]}
                     </div>
-                    <p>切羽は{results['stability']}状態です</p>
+                    <div class="metric-label">切羽は{results['stability']}状態です</div>
                 </div>
                 """,
                 unsafe_allow_html=True
