@@ -445,11 +445,10 @@ class MurayamaCalculatorRevised:
         
         # 最終的な安全率
         final_factor = (upper + lower) / 2
-        # F < 1の場合は強度が増加しているので、安全率は1/F
-        if final_factor < 1.0:
-            safety_factor = 1.0 / final_factor
-        else:
-            safety_factor = final_factor
+        # 安全率は強度低減係数そのもの
+        # P>0の場合：強度を増加（F<1）させてP=0 → 安全率<1
+        # P<0の場合：強度を低減（F>1）させてP=0 → 安全率>1
+        safety_factor = final_factor
         
         # 強度定数を元に戻す
         self.coh = original_coh
@@ -457,8 +456,17 @@ class MurayamaCalculatorRevised:
         self.phi_deg = original_phi_deg
         
         # 追加の評価点を生成（グラフ描画用）
-        # 安全率0.5から2.0の範囲で評価点を生成
-        evaluation_safety_factors = np.linspace(0.5, 2.0, 20)
+        # 安全率の範囲を動的に決定
+        if safety_factor < 1.0:
+            # P>0（不安定）の場合は0.1から1.5の範囲
+            eval_min = max(0.1, safety_factor * 0.5)
+            eval_max = min(1.5, safety_factor * 2.0)
+        else:
+            # P<0（安定）の場合は0.5から最大値の範囲
+            eval_min = 0.5
+            eval_max = max(2.0, safety_factor * 1.2)
+        
+        evaluation_safety_factors = np.linspace(eval_min, eval_max, 20)
         # 臨界点（安全率1.0）を確実に含める
         evaluation_safety_factors = np.append(evaluation_safety_factors, 1.0)
         # 実際の安全率も含める
@@ -546,15 +554,27 @@ class MurayamaCalculatorRevised:
         true_sf_result = self.calculate_true_safety_factor(critical_result['theta_d'])
         safety_factor = true_sf_result['safety_factor']
         
-        # 安定性の評価（新しい安全率に基づく）
-        if safety_factor >= 1.5:
-            stability = "安定"
-        elif safety_factor >= 1.2:
-            stability = "安定（自立）"
-        elif safety_factor >= 1.0:
-            stability = "要注意"
+        # 安定性の評価（P値と安全率の両方を考慮）
+        if max_P <= 0:
+            # 支保不要（自立可能）
+            if safety_factor >= 1.5:
+                stability = "安定（自立）"
+            elif safety_factor >= 1.2:
+                stability = "安定（自立・要注意）"
+            else:
+                stability = "要注意（自立）"
         else:
-            stability = "不安定"
+            # 支保必要（P > 0）
+            if safety_factor >= 1.0:
+                # 安全率が1以上は物理的にあり得ない（P>0なら安全率<1のはず）
+                # 計算エラーの可能性があるため警告
+                stability = "計算エラー（要確認）"
+            elif safety_factor >= 0.8:
+                stability = "要注意（要支保）"
+            elif safety_factor >= 0.6:
+                stability = "不安定（要支保）"
+            else:
+                stability = "危険（要支保）"
         
         return {
             'max_P': max_P,
