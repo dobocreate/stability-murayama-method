@@ -267,7 +267,7 @@ with tab1:
         # 概念図
         st.markdown("---")
         st.subheader("概念図")
-        st.image("data/image.jpg", use_column_width=True)
+        st.image("data/image.jpg", width=None, use_container_width=False)
     
     # 詳細結果の表示
     if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
