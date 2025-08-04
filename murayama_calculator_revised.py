@@ -477,14 +477,17 @@ class MurayamaCalculatorRevised:
         
         # 各安全率でのP値を計算
         for eval_safety_factor in evaluation_factors:
-            # 安全率から実際の強度低減係数を計算
-            # 元の強度に対する相対的な強度低減係数 = eval_safety_factor / safety_factor
-            actual_factor = eval_safety_factor / safety_factor
+            # 安全率から強度係数Fを計算
+            # サンプル計算結果より：
+            # - 安全率1.0のとき F=0.711（P=0となる強度）
+            # - 安全率0.711のとき F=1.0（元の強度）
+            # つまり、F = safety_factor / eval_safety_factor * 1.0
+            actual_factor = safety_factor / eval_safety_factor
             
             # 強度を計算
-            # c' = c/actual_factor
+            # c' = c/F
             self.coh = original_coh / actual_factor
-            # tan(φ') = tan(φ)/actual_factor
+            # tan(φ') = tan(φ)/F
             self.phi = np.arctan(np.tan(original_phi) / actual_factor)
             self.phi_deg = np.degrees(self.phi)
             
