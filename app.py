@@ -249,10 +249,6 @@ with tab1:
                         {results['stability']} {emoji[results['stability']]}
                     </div>
                     <p>切羽は{results['stability']}状態です</p>
-                    <p>最大必要支保圧: {results['max_P']:.2f} kN/m²</p>
-                    <p>臨界条件: θ_d = {results['critical_theta_deg']:.1f}°</p>
-                    <p>対応する r₀ = {results['critical_r0']:.2f} m</p>
-                    <p>崩壊位置までの水平距離: B = {results.get('critical_geometry', {}).get('B', 0):.2f} m</p>
                 </div>
                 """,
                 unsafe_allow_html=True
