@@ -87,7 +87,7 @@ def test_case(params, excel_values, case_name):
     print(f"\nケース: {case_name}")
     print(f"パラメータ: H={params['H']}, γ={params['gamma']}, c={params['c']}, φ={params['phi_deg']}°, H_f={params['H_f']}")
     
-    # 計算機インスタンス（Excel互換モード）
+    # 計算機インスタンス
     calculator = MurayamaCalculatorRevised(
         H_f=params['H_f'],
         gamma=params['gamma'],
@@ -96,8 +96,7 @@ def test_case(params, excel_values, case_name):
         H=params['H'],
         alpha=params['alpha'],
         K=params['K'],
-        force_finite_cover=True,
-        excel_compatible_lw2=True  # Excel互換モードを使用
+        force_finite_cover=True
     )
     
     # 計算実行
@@ -168,8 +167,7 @@ def test_multiple_angles(params):
         H=params['H'],
         alpha=params['alpha'],
         K=params['K'],
-        force_finite_cover=True,
-        excel_compatible_lw2=True  # Excel互換モードを使用
+        force_finite_cover=True
     )
     
     for theta_deg in range(50, 71, 5):

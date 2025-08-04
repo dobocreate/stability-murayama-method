@@ -120,17 +120,6 @@ with tab1:
             help="地山の粘着力を入力してください（kPa単位）"
         )
         
-        # 計算オプション
-        st.markdown("---")
-        st.subheader("計算オプション")
-        
-        force_finite_cover = st.checkbox(
-            "有限土被り式を強制的に使用", 
-            value=False,
-            help="チェックすると深部条件（H > 1.5B）でも常に有限土被り式を使用します"
-        )
-        
-        
         # 詳細パラメータ
         st.markdown("---")
         st.subheader("詳細パラメータ")
@@ -152,6 +141,12 @@ with tab1:
                 value=1.0,
                 step=0.1,
                 help="Terzaghi実験による係数（標準値: 1.0、範囲: 1.0～1.5）"
+            )
+            
+            force_finite_cover = st.checkbox(
+                "有限土被り式を強制的に使用", 
+                value=True,
+                help="チェックすると深部条件（H > 1.5B）でも常に有限土被り式を使用します"
             )
         
         # 解析パラメータ

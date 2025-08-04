@@ -162,66 +162,55 @@ class MurayamaCalculatorRevised:
         w2 = self.gamma * (term2 - term3)
         
         # 曲線部分の重心（Excel M9式の実装）
-        if abs(theta_d) > 1e-12 and abs(np.tan(self.phi)) > 1e-12 and abs(w2) > 1e-12:
-            # 中間パラメータの計算（ExcelのS,T,U,V）
-            O = np.hypot(B, self.H_f)  # 切羽の対角線長
-            P = np.arctan2(self.H_f, B)  # 方向角（rad）
-            
-            # S（Excelのx）の計算
-            S = np.sqrt((O**2)/4.0 + r0**2 - O*r0*np.cos(P + self.phi))
-            
-            # T（Excelのθc）の計算
-            R = r0 * np.sin(P + self.phi)
-            cos_arg = np.clip(R / S, -1.0, 1.0) if S > 0.0 else 1.0
-            T = np.arccos(cos_arg) - (P + self.phi - np.pi/2.0)
-            
-            # U（Excelのh）の計算
-            U = (r0*np.exp(T*np.tan(self.phi)) - S) * (r0*np.sin(P + self.phi)) / (S if S != 0.0 else 1.0)
-            
-            # V（Excelのβ）の計算
-            if abs(U) > 1e-12:
-                V = np.pi - 2*np.arctan(O/(2*U))
-            else:
-                V = np.pi
-            
-            # Excel M9式の実装
-            # 第1項
-            term1_lw2 = S * np.cos(self.phi + T)
-            
-            # 第2項の計算
-            cos_V = np.cos(V)
-            sin_V = np.sin(V)
-            
-            if abs(1 - cos_V) > 1e-12:
-                # 各要素の計算
-                A = U / (1 - cos_V)
-                B_num = 1 - cos_V**2
-                B_den = V - sin_V * cos_V
-                
-                if abs(B_den) > 1e-12:
-                    B_frac = B_num / B_den
-                    C = sin_V
-                    D = U * cos_V / (1 - cos_V)
-                    
-                    # 第2項（Excel準拠：常にB/H_fを使用）
-                    cos_direction = np.cos(np.arctan2(B, self.H_f))
-                    
-                    term2_inner = A * B_frac * C - D
-                    term2_lw2 = (2.0/3.0) * term2_inner * cos_direction
-                    
-                    lw2 = term1_lw2 + term2_lw2
-                else:
-                    # B_denが0に近い場合
-                    lw2 = term1_lw2 + (2.0/3.0)*U*np.cos(np.arctan2(B, self.H_f))
-            else:
-                # 1-cos(V)が0に近い場合
-                lw2 = term1_lw2 + (2.0/3.0)*U*np.cos(np.arctan2(B, self.H_f))
-            
-            # 数値安定性チェック
-            if not np.isfinite(lw2):
-                lw2 = la + (2.0/3.0)*B
+
+        # 中間パラメータの計算（ExcelのS,T,U,V）
+        O = np.hypot(B, self.H_f)  # 切羽の対角線長
+        P = np.arctan2(self.H_f, B)  # 方向角（rad）
+        
+        # S（Excelのx）の計算
+        S = np.sqrt((O**2)/4.0 + r0**2 - O*r0*np.cos(P + self.phi))
+        
+        # T（Excelのθc）の計算
+        R = r0 * np.sin(P + self.phi)
+        cos_arg = np.clip(R / S, -1.0, 1.0) if S > 0.0 else 1.0
+        T = np.arccos(cos_arg) - (P + self.phi - np.pi/2.0)
+        
+        # U（Excelのh）の計算
+        U = (r0*np.exp(T*np.tan(self.phi)) - S) * (r0*np.sin(P + self.phi)) / (S if S != 0.0 else 1.0)
+        
+        # V（Excelのβ）の計算
+        if abs(U) > 1e-12:
+            V = np.pi - 2*np.arctan(O/(2*U))
         else:
-            lw2 = la + (2.0/3.0)*B  # フォールバック
+            V = np.pi
+        
+        # Excel M9式の実装
+        # 第1項
+        term1_lw2 = S * np.cos(self.phi + T)
+        
+        # 第2項の計算
+        cos_V = np.cos(V)
+        sin_V = np.sin(V)
+        
+
+        # 各要素の計算
+        A = U / (1 - cos_V)
+        B_num = 1 - cos_V**2
+        B_den = V - sin_V * cos_V
+        
+
+        B_frac = B_num / B_den
+        C = sin_V
+        D = U * cos_V / (1 - cos_V)
+        
+        # 第2項（Excel準拠：常にB/H_fを使用）
+        cos_direction = np.cos(np.arctan2(B, self.H_f))
+        
+        term2_inner = (2.0/3.0) * A * B_frac * C - D
+        term2_lw2 = term2_inner * cos_direction
+        
+        lw2 = term1_lw2 + term2_lw2
+
         
         # 合成重心（重み付き平均）
         if abs(w1 + w2) > 1e-12:
