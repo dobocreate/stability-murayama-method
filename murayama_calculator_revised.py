@@ -436,6 +436,7 @@ class MurayamaCalculatorRevised:
             'critical_r0': critical['critical_geometry']['r0'],
             'critical_theta': critical['critical_theta_d'],
             'critical_theta_deg': critical['critical_theta_d_deg'],
+            'critical_geometry': critical['critical_geometry'],
             'critical_moments': {
                 'area': 0,  # ダミー値
                 'centroid_x': critical['critical_params']['lw'],
