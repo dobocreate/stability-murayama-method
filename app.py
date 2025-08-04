@@ -246,8 +246,6 @@ with tab1:
         col_empty1, col_image, col_empty2 = st.columns([1, 4, 1])
         with col_image:
             st.image("data/image.jpg", use_container_width=True)
-        
-        st.markdown("---")
     
     # 詳細結果の表示
     if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
@@ -329,7 +327,7 @@ with tab1:
                     <div class="metric-value {p_color_class}">
                         {results['max_P']:.2f}
                     </div>
-                    <div class="metric-label">kN/m²で支保が必要です</div>
+                    <div class="metric-label">kN/m²</div>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -339,15 +337,8 @@ with tab1:
             # 安全率の表示（無限大の場合は特別な表示）
             if results['safety_factor'] == float('inf'):
                 sf_display = "∞"
-                sf_description = "十分に安全な状態です"
             else:
                 sf_display = f"{results['safety_factor']:.2f}"
-                if results['safety_factor'] >= 1.5:
-                    sf_description = "十分に安全な状態です"
-                elif results['safety_factor'] >= 1.0:
-                    sf_description = "注意が必要な状態です"
-                else:
-                    sf_description = "安全性に懸念があります"
             
             st.markdown(
                 f"""
@@ -356,7 +347,7 @@ with tab1:
                     <div class="metric-value {sf_color_class}">
                         {sf_display}
                     </div>
-                    <div class="metric-label">{sf_description}</div>
+                    <div class="metric-label">&nbsp;</div>
                 </div>
                 """,
                 unsafe_allow_html=True
