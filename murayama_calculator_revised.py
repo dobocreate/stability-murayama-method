@@ -56,6 +56,8 @@ class MurayamaCalculatorRevised:
             
         if self.phi_deg < 0 or self.phi_deg > 90:
             errors.append("内部摩擦角φは0-90度の範囲である必要があります")
+        if self.phi_deg < 1.0:
+            errors.append("内部摩擦角φは1度以上である必要があります（数値安定性のため）")
         if self.phi_deg > 60:
             warnings.warn("内部摩擦角φが大きすぎる可能性があります（通常60度以下）")
             
@@ -334,6 +336,70 @@ class MurayamaCalculatorRevised:
         lower = 0.1   # 最小係数
         upper = 10.0  # 最大係数
         tolerance = 0.001
+        
+        # P(factor)を評価する内部関数
+        def evaluate_P_at_factor(factor: float) -> float:
+            """指定された強度低減係数でのPを評価"""
+            self.coh = original_coh / factor
+            self.phi = np.arctan(np.tan(original_phi) / factor)
+            self.phi_deg = np.degrees(self.phi)
+            try:
+                result = self.calculate_support_pressure(theta_d)
+                return result['P']
+            except Exception:
+                return np.nan
+        
+        # 初期括り出し: P(lower)とP(upper)が異符号になるまで範囲を拡張
+        P_lower = evaluate_P_at_factor(lower)
+        P_upper = evaluate_P_at_factor(upper)
+        
+        expand_count = 0
+        max_expand = 8
+        
+        while expand_count < max_expand and (
+            np.isnan(P_lower) or np.isnan(P_upper) or 
+            np.sign(P_lower) == np.sign(P_upper)
+        ):
+            # P>0（不安定）が見つからない場合はupperを拡大（強度をより低減）
+            if np.isnan(P_upper) or P_upper <= 0.0:
+                upper *= 2.0
+                P_upper = evaluate_P_at_factor(upper)
+            
+            # P<=0（安定）が見つからない場合はlowerを縮小（強度をより増加）
+            if np.isnan(P_lower) or P_lower > 0.0:
+                lower /= 2.0
+                P_lower = evaluate_P_at_factor(lower)
+            
+            expand_count += 1
+        
+        # 括り出しに失敗した場合の処理
+        if np.isnan(P_lower) or np.isnan(P_upper) or np.sign(P_lower) == np.sign(P_upper):
+            # 強度定数を元に戻す
+            self.coh = original_coh
+            self.phi = original_phi
+            self.phi_deg = original_phi_deg
+            
+            # 常に安定（P<=0）の場合は安全率→∞、常に不安定の場合は0
+            if P_lower <= 0 and P_upper <= 0:
+                return {
+                    'safety_factor': float('inf'),
+                    'critical_reduction_factor': np.nan,
+                    'original_P': original_P,
+                    'reduction_history': reduction_history,
+                    'evaluation_points': [],
+                    'theta_d': theta_d,
+                    'theta_d_deg': np.degrees(theta_d)
+                }
+            else:
+                return {
+                    'safety_factor': 0.0,
+                    'critical_reduction_factor': np.nan,
+                    'original_P': original_P,
+                    'reduction_history': reduction_history,
+                    'evaluation_points': [],
+                    'theta_d': theta_d,
+                    'theta_d_deg': np.degrees(theta_d)
+                }
         
         iteration = 0
         max_iterations = 30
