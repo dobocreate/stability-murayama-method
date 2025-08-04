@@ -275,7 +275,7 @@ with tab1:
         st.markdown("---")
         st.subheader("詳細解析結果")
         
-        results_tab1, results_tab2 = st.tabs(["滑り面解析", "詳細データ"])
+        results_tab1, results_tab2 = st.tabs(["滑り面解析", "結果の出力"])
         
         with results_tab1:
             # 必要支保圧の分布グラフ
@@ -318,36 +318,72 @@ with tab1:
             st.plotly_chart(fig, use_container_width=True)
         
         with results_tab2:
-            # 詳細データの表示
-            st.write("**入力パラメータ**")
-            input_data = {
-                "パラメータ": ["切羽高さ H_f", "地山単位体積重量 γ", "地山内部摩擦角 φ", "地山粘着力 coh",
-                        "土被り H", "影響幅係数 α", "経験係数 K"],
-                "値": [f"{H_f} m", f"{gamma} kN/m³", f"{phi}°", f"{coh} kPa",
-                    f"{H} m" if H is not None else "深部前提", f"{alpha}", f"{K}"],
-            }
-            st.table(pd.DataFrame(input_data))
+            # 2列レイアウトで表示
+            col_result1, col_result2 = st.columns(2)
             
-            st.write("**解析結果サマリー**")
-            # 安全率の表示（無限大の場合の処理）
-            safety_factor_str = "∞" if results['safety_factor'] == float('inf') else f"{results['safety_factor']:.2f}"
+            with col_result1:
+                st.write("**入力パラメータ**")
+                input_data = {
+                    "パラメータ": ["切羽高さ H_f", "地山単位体積重量 γ", "地山内部摩擦角 φ", "地山粘着力 coh",
+                            "土被り H", "影響幅係数 α", "経験係数 K"],
+                    "値": [f"{H_f} m", f"{gamma} kN/m³", f"{phi}°", f"{coh} kPa",
+                        f"{H} m" if H is not None else "深部前提", f"{alpha}", f"{K}"],
+                }
+                st.table(pd.DataFrame(input_data))
             
-            summary_data = {
-                "項目": ["最大必要支保圧", "臨界探索角度 θ_d", "対応する初期半径 r₀", "安全率", "安定性評価"],
-                "値": [
-                    f"{results['max_P']:.2f} kN/m²",
-                    f"{results['critical_theta_deg']:.1f}°",
-                    f"{results['critical_r0']:.2f} m",
-                    safety_factor_str,
-                    results['stability']
-                ],
-            }
-            st.table(pd.DataFrame(summary_data))
+            with col_result2:
+                st.write("**解析結果サマリー**")
+                # 安全率の表示（無限大の場合の処理）
+                safety_factor_str = "∞" if results['safety_factor'] == float('inf') else f"{results['safety_factor']:.2f}"
+                
+                summary_data = {
+                    "項目": ["最大必要支保圧", "臨界探索角度 θ_d", "対応する初期半径 r₀", "安全率", "安定性評価"],
+                    "値": [
+                        f"{results['max_P']:.2f} kN/m²",
+                        f"{results['critical_theta_deg']:.1f}°",
+                        f"{results['critical_r0']:.2f} m",
+                        safety_factor_str,
+                        results['stability']
+                    ],
+                }
+                st.table(pd.DataFrame(summary_data))
             
             # CSV出力機能
             st.write("**データエクスポート**")
             
-            # 詳細な計算結果のDataFrame作成
+            # 全角度範囲での詳細な計算結果を生成
+            calculator = st.session_state.calculator
+            theta_range = (theta_min, theta_max)
+            
+            # 全角度での計算結果を取得
+            all_results = []
+            for theta_deg in range(theta_min, theta_max + 1):
+                theta_rad = np.radians(theta_deg)
+                try:
+                    result = calculator.calculate_support_pressure(theta_rad)
+                    if result['valid']:
+                        geom = result['geometry']
+                        all_results.append({
+                            'theta_deg': theta_deg,
+                            'theta_rad': theta_rad,
+                            'r0_m': geom['r0'],
+                            'rd_m': geom['rd'],
+                            'B_m': geom['B'],
+                            'la_m': geom['la'],
+                            'lp_m': geom['lp'],
+                            'q_kN_m2': result['q'],
+                            'Wf_kN': result['Wf'],
+                            'lw_m': result['lw'],
+                            'Mc_kNm': result['Mc'],
+                            'P_kN_m2': result['P']
+                        })
+                except:
+                    continue
+            
+            # DataFrameを作成
+            df_all_results = pd.DataFrame(all_results)
+            
+            # プレビュー用のDataFrame（既存のresultsから）
             df_detailed = pd.DataFrame(results['detailed_results'])
             
             # カラム名を日本語に変更
@@ -366,22 +402,43 @@ with tab1:
                 'P_kN_m2': '必要支保圧P (kN/m²)'
             }
             df_detailed_jp = df_detailed.rename(columns=column_names)
+            df_all_results_jp = df_all_results.rename(columns=column_names)
             
-            # CSV変換
+            # CSV変換（全結果）
             csv_buffer = io.StringIO()
-            df_detailed_jp.to_csv(csv_buffer, index=False, encoding='utf-8')
+            df_all_results_jp.to_csv(csv_buffer, index=False, encoding='utf-8')
             csv = csv_buffer.getvalue().encode('utf-8-sig')
             
-            # プレビュー表示
-            st.write("データプレビュー（最初の5行）")
-            st.dataframe(df_detailed_jp.head())
+            # プレビュー表示（臨界角度±10データポイント）
+            st.write("**データプレビュー（臨界角度θ_d周辺±10データポイント）**")
+            
+            # 臨界角度を取得
+            critical_theta = results['critical_theta_deg']
+            
+            # 臨界角度を中心とした±10データポイントの範囲を決定
+            preview_min = max(0, len(df_detailed_jp) // 2 - 10)  # 中央付近から-10
+            preview_max = min(len(df_detailed_jp), len(df_detailed_jp) // 2 + 11)  # 中央付近から+10
+            
+            # より正確に臨界角度周辺のデータを抽出
+            if 'theta_deg' in df_detailed.columns:
+                # 臨界角度に最も近いインデックスを見つける
+                theta_values = df_detailed['theta_deg'].values
+                critical_index = np.argmin(np.abs(theta_values - critical_theta))
+                
+                # ±10データポイントの範囲を設定
+                preview_min = max(0, critical_index - 10)
+                preview_max = min(len(df_detailed_jp), critical_index + 11)
+            
+            preview_df = df_detailed_jp.iloc[preview_min:preview_max]
+            st.dataframe(preview_df)
             
             # ダウンロードボタン
             st.download_button(
-                label="計算結果をCSVでダウンロード",
+                label="計算結果の出力",
                 data=csv,
                 file_name="murayama_analysis_revised_results.csv",
-                mime="text/csv;charset=utf-8-sig"
+                mime="text/csv;charset=utf-8-sig",
+                help=f"指定した角度範囲（{theta_min}°～{theta_max}°）の全計算結果をCSVファイルでダウンロードします"
             )
 
 with tab2:
