@@ -338,7 +338,7 @@ with tab1:
         st.markdown("---")
         st.subheader("詳細計算結果")
         
-        results_tab1, results_tab2 = st.tabs(["計算結果", "結果出力"])
+        results_tab1, results_tab2, results_tab3 = st.tabs(["計算結果", "結果出力", "安全率計算"])
         
         with results_tab1:
             # 必要支保圧の分布グラフ
@@ -513,6 +513,166 @@ with tab1:
                 mime="text/csv;charset=utf-8-sig",
                 help=f"指定した角度範囲（{theta_min}°～{theta_max}°）の全計算結果をCSVファイルでダウンロードします"
             )
+        
+        with results_tab3:
+            # 安全率計算の説明
+            st.write("**安全率の算出根拠**")
+            st.info("""
+            本システムでは、地山強度パラメータ（粘着力cと内部摩擦角φ）を同じ割合で低減していき、
+            必要支保圧がちょうど0になる低減係数を求めることで安全率を算出しています。
+            
+            **安全率 = 1.0 ÷ 低減係数**
+            
+            例：低減係数0.5で必要支保圧が0になる場合、安全率は2.0となります。
+            """)
+            
+            # 安全率計算結果の取得
+            if results.get('true_safety_factor_result'):
+                sf_result = results['true_safety_factor_result']
+                
+                # 結果の表示
+                col_sf1, col_sf2 = st.columns([1, 1])
+                
+                with col_sf1:
+                    st.metric(
+                        label="真の安全率",
+                        value=f"{sf_result['safety_factor']:.3f}"
+                    )
+                
+                with col_sf2:
+                    st.metric(
+                        label="臨界低減係数",
+                        value=f"{sf_result['critical_reduction_factor']:.3f}"
+                    )
+                
+                # 強度変化と必要支保圧のグラフ
+                st.write("**強度低減と必要支保圧の関係**")
+                
+                # データの準備
+                eval_points = sf_result['evaluation_points']
+                factors = [p['factor'] for p in eval_points]
+                pressures = [p['P'] for p in eval_points]
+                coh_values = [p['coh'] for p in eval_points]
+                phi_values = [p['phi_deg'] for p in eval_points]
+                
+                # グラフの作成
+                fig_sf = go.Figure()
+                
+                # 必要支保圧の曲線
+                fig_sf.add_trace(go.Scatter(
+                    x=factors,
+                    y=pressures,
+                    mode='lines+markers',
+                    name='必要支保圧',
+                    line=dict(width=3, color='blue'),
+                    marker=dict(size=6)
+                ))
+                
+                # ゼロラインの追加
+                fig_sf.add_hline(y=0, line_dash="dash", line_color="red", 
+                               annotation_text="P = 0 (自立限界)")
+                
+                # 臨界点のマーカー
+                fig_sf.add_trace(go.Scatter(
+                    x=[sf_result['critical_reduction_factor']],
+                    y=[0],
+                    mode='markers+text',
+                    marker=dict(size=15, color='red', symbol='x'),
+                    name='臨界点',
+                    text=[f"低減係数 = {sf_result['critical_reduction_factor']:.3f}<br>安全率 = {sf_result['safety_factor']:.3f}"],
+                    textposition="top center",
+                    textfont=dict(size=12, color='red')
+                ))
+                
+                # 元の強度での点
+                fig_sf.add_trace(go.Scatter(
+                    x=[1.0],
+                    y=[sf_result['original_P']],
+                    mode='markers+text',
+                    marker=dict(size=12, color='green', symbol='circle'),
+                    name='現在の状態',
+                    text=[f"P = {sf_result['original_P']:.2f} kN/m²"],
+                    textposition="top center"
+                ))
+                
+                fig_sf.update_layout(
+                    title="強度低減係数と必要支保圧の関係",
+                    xaxis_title="強度低減係数",
+                    yaxis_title="必要支保圧 P (kN/m²)",
+                    height=500,
+                    xaxis=dict(range=[0, 1.6]),
+                    showlegend=True
+                )
+                
+                st.plotly_chart(fig_sf, use_container_width=True)
+                
+                # 強度パラメータの変化
+                st.write("**強度パラメータの変化**")
+                
+                # 2つのグラフを並べて表示
+                col_graph1, col_graph2 = st.columns(2)
+                
+                with col_graph1:
+                    # 粘着力の変化
+                    fig_coh = go.Figure()
+                    fig_coh.add_trace(go.Scatter(
+                        x=factors,
+                        y=coh_values,
+                        mode='lines+markers',
+                        name='粘着力',
+                        line=dict(width=2, color='orange')
+                    ))
+                    fig_coh.add_vline(x=sf_result['critical_reduction_factor'], 
+                                    line_dash="dash", line_color="red")
+                    fig_coh.update_layout(
+                        title="粘着力の変化",
+                        xaxis_title="強度低減係数",
+                        yaxis_title="粘着力 coh (kPa)",
+                        height=300
+                    )
+                    st.plotly_chart(fig_coh, use_container_width=True)
+                
+                with col_graph2:
+                    # 内部摩擦角の変化
+                    fig_phi = go.Figure()
+                    fig_phi.add_trace(go.Scatter(
+                        x=factors,
+                        y=phi_values,
+                        mode='lines+markers',
+                        name='内部摩擦角',
+                        line=dict(width=2, color='green')
+                    ))
+                    fig_phi.add_vline(x=sf_result['critical_reduction_factor'], 
+                                    line_dash="dash", line_color="red")
+                    fig_phi.update_layout(
+                        title="内部摩擦角の変化",
+                        xaxis_title="強度低減係数",
+                        yaxis_title="内部摩擦角 φ (度)",
+                        height=300
+                    )
+                    st.plotly_chart(fig_phi, use_container_width=True)
+                
+                # 詳細データの表示
+                with st.expander("計算詳細データ"):
+                    # DataFrameの作成
+                    df_sf = pd.DataFrame({
+                        '強度低減係数': factors,
+                        '粘着力 (kPa)': coh_values,
+                        '内部摩擦角 (度)': phi_values,
+                        '必要支保圧 (kN/m²)': pressures
+                    })
+                    
+                    # 臨界点の行を強調
+                    def highlight_critical(row):
+                        if abs(row['強度低減係数'] - sf_result['critical_reduction_factor']) < 0.01:
+                            return ['background-color: #FFB6C1'] * len(row)
+                        return [''] * len(row)
+                    
+                    styled_df = df_sf.style.apply(highlight_critical, axis=1)
+                    st.dataframe(styled_df, use_container_width=True)
+            
+            else:
+                st.warning("安全率の計算結果がありません。解析を実行してください。")
 
 with tab2:
     # 技術情報ページ
