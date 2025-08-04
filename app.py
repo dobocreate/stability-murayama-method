@@ -51,6 +51,40 @@ st.markdown("""
         font-size: 2rem;
         font-weight: bold;
     }
+    .custom-metric-card {
+        background-color: #ffffff;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 10px 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.2s;
+    }
+    .custom-metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    .metric-label {
+        font-size: 1rem;
+        color: #666666;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .metric-value-safe {
+        color: #00cc00;
+    }
+    .metric-value-warning {
+        color: #ff9900;
+    }
+    .metric-value-danger {
+        color: #ff0000;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -231,27 +265,60 @@ with tab1:
             
             emoji = {"安定": "😊", "安定（自立）": "😊", "要注意": "😐", "不安定": "😰"}
             
-            # メトリクスの表示（1:1の割合）
+            # カスタムメトリクスの表示（1:1の割合）
             col2_1, col2_2 = st.columns([1, 1])
             
+            # 必要支保圧の色分け
+            max_p = results['max_P']
+            if max_p <= 50:
+                p_color_class = "metric-value-safe"
+            elif max_p <= 100:
+                p_color_class = "metric-value-warning"
+            else:
+                p_color_class = "metric-value-danger"
+            
+            # 安全率の色分け
+            sf = results['safety_factor']
+            if sf == float('inf') or sf >= 1.5:
+                sf_color_class = "metric-value-safe"
+            elif sf >= 1.0:
+                sf_color_class = "metric-value-warning"
+            else:
+                sf_color_class = "metric-value-danger"
+            
             with col2_1:
-                st.metric(
-                    label="必要支保圧",
-                    value=f"{results['max_P']:.2f} kN/m²"
+                st.markdown(
+                    f"""
+                    <div class="custom-metric-card">
+                        <div class="metric-label">💪 必要支保圧</div>
+                        <div class="metric-value {p_color_class}">
+                            {results['max_P']:.2f}
+                        </div>
+                        <div class="metric-label">kN/m²</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
                 )
             
             with col2_2:
                 # 安全率の表示（無限大の場合は特別な表示）
                 if results['safety_factor'] == float('inf'):
-                    st.metric(
-                        label="安全率",
-                        value="∞"
-                    )
+                    sf_display = "∞"
                 else:
-                    st.metric(
-                        label="安全率",
-                        value=f"{results['safety_factor']:.2f}"
-                    )
+                    sf_display = f"{results['safety_factor']:.2f}"
+                
+                st.markdown(
+                    f"""
+                    <div class="custom-metric-card">
+                        <div class="metric-label">🛡️ 安全率</div>
+                        <div class="metric-value {sf_color_class}">
+                            {sf_display}
+                        </div>
+                        <div class="metric-label">&nbsp;</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
             
             # 安定性評価の表示
             st.markdown(
