@@ -275,7 +275,7 @@ with tab1:
         st.markdown("---")
         st.subheader("詳細解析結果")
         
-        results_tab1, results_tab2 = st.tabs(["滑り面解析", "結果の出力"])
+        results_tab1, results_tab2 = st.tabs(["計算結果", "結果の出力"])
         
         with results_tab1:
             # 必要支保圧の分布グラフ
@@ -298,13 +298,16 @@ with tab1:
                 line=dict(width=2)
             ))
             
-            # 最大値の位置にマーカーを追加
+            # 最大値の位置にマーカーを追加（旗揚げ付き）
             fig.add_trace(go.Scatter(
                 x=[results['critical_theta_deg']],
                 y=[results['max_P']],
-                mode='markers',
+                mode='markers+text',
                 marker=dict(size=15, color='red', symbol='x'),
                 name='最大支保圧点',
+                text=[f"θ_d = {results['critical_theta_deg']:.1f}°<br>P = {results['max_P']:.2f} kN/m²"],
+                textposition="top center",
+                textfont=dict(size=12, color='red'),
                 showlegend=True
             ))
             
