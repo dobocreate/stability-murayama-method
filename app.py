@@ -267,7 +267,10 @@ with tab1:
         # 概念図
         st.markdown("---")
         st.subheader("概念図")
-        st.image("data/image.jpg", width=None, use_container_width=False)
+        # 50%サイズで表示するため、中央の列に配置
+        col_empty1, col_image, col_empty2 = st.columns([1, 2, 1])
+        with col_image:
+            st.image("data/image.jpg", use_container_width=True)
     
     # 詳細結果の表示
     if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
