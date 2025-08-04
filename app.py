@@ -81,6 +81,13 @@ st.markdown("""
     .metric-value-danger {
         color: #ff0000;
     }
+    /* 計算実行ボタンのスタイル */
+    .stButton > button[kind="primary"] {
+        height: 60px !important;
+        font-size: 18px !important;
+        font-weight: bold !important;
+        border-radius: 8px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -215,13 +222,13 @@ with tab1:
         st.write("")  # 1行分のスペース
         
         # 計算実行ボタン
-        if st.button("解析の実行", type="primary", use_container_width=True):
+        if st.button("計算の実行", type="primary", use_container_width=True):
             try:
                 # 計算機インスタンスの作成
                 calculator = MurayamaCalculatorRevised(H_f, gamma, phi, coh, H, alpha, K, force_finite_cover)
                 
                 # パラメトリックスタディの実行
-                with st.spinner("解析を実行中..."):
+                with st.spinner("計算を実行中..."):
                     results = calculator.parametric_study(
                         (theta_min, theta_max),
                         n_points
@@ -793,8 +800,8 @@ with tab3:
        - 探索角度 θ_d の範囲を設定（標準: 20°～80°）
        - 計算は1度刻みで自動実行されます
     
-    5. **解析の実行**
-       - 「解析の実行」ボタンをクリック
+    5. **計算の実行**
+       - 「計算の実行」ボタンをクリック
        - r₀ は自動的に計算されます（入力不要）
     """)
     
