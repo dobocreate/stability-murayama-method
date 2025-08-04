@@ -544,12 +544,28 @@ with tab1:
                 
                 # データの準備
                 eval_points = sf_result['evaluation_points']
-                factors = [p['factor'] for p in eval_points]
-                # 安全率に変換（安全率 = 1 / 低減係数）
-                safety_factors = [1.0/f if f > 0 else float('inf') for f in factors]
-                pressures = [p['P'] for p in eval_points]
-                coh_values = [p['coh'] for p in eval_points]
-                phi_values = [p['phi_deg'] for p in eval_points]
+                
+                # 安全率でソートするためのデータを作成
+                data_points = []
+                for p in eval_points:
+                    sf = 1.0/p['factor'] if p['factor'] > 0 else float('inf')
+                    data_points.append({
+                        'safety_factor': sf,
+                        'factor': p['factor'],
+                        'coh': p['coh'],
+                        'phi_deg': p['phi_deg'],
+                        'P': p['P']
+                    })
+                
+                # 安全率でソート
+                data_points = sorted(data_points, key=lambda x: x['safety_factor'])
+                
+                # ソート済みデータから各リストを作成
+                safety_factors = [d['safety_factor'] for d in data_points]
+                factors = [d['factor'] for d in data_points]
+                pressures = [d['P'] for d in data_points]
+                coh_values = [d['coh'] for d in data_points]
+                phi_values = [d['phi_deg'] for d in data_points]
                 
                 # グラフの作成
                 fig_sf = go.Figure()
