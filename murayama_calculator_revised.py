@@ -579,11 +579,11 @@ class MurayamaCalculatorRevised:
                 # 計算エラーの可能性があるため警告
                 stability = "計算エラー（要確認）"
             elif safety_factor >= 0.8:
-                stability = "要注意（要支保）"
+                stability = "要注意（要対策）"
             elif safety_factor >= 0.6:
-                stability = "不安定（要支保）"
+                stability = "不安定（要対策）"
             else:
-                stability = "危険（要支保）"
+                stability = "危険（要対策）"
         
         return {
             'max_P': max_P,

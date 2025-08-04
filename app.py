@@ -262,10 +262,10 @@ with tab1:
             "安定（自立・要注意）": "stability-stable",
             "要注意（自立）": "stability-warning",
             "要注意": "stability-warning",
-            "要注意（要支保）": "stability-warning",
+            "要注意（要対策）": "stability-warning",
             "不安定": "stability-unstable",
-            "不安定（要支保）": "stability-unstable",
-            "危険（要支保）": "stability-unstable",
+            "不安定（要対策）": "stability-unstable",
+            "危険（要対策）": "stability-unstable",
             "計算エラー（要確認）": "stability-unstable"
         }
         
@@ -275,10 +275,10 @@ with tab1:
             "安定（自立・要注意）": "😊",
             "要注意（自立）": "😐",
             "要注意": "😐",
-            "要注意（要支保）": "😐",
+            "要注意（要対策）": "😐",
             "不安定": "😰",
-            "不安定（要支保）": "😰",
-            "危険（要支保）": "😰",
+            "不安定（要対策）": "😰",
+            "危険（要対策）": "😰",
             "計算エラー（要確認）": "⚠️"
         }
         
@@ -329,7 +329,7 @@ with tab1:
                     <div class="metric-value {p_color_class}">
                         {results['max_P']:.2f}
                     </div>
-                    <div class="metric-label">kN/m²</div>
+                    <div class="metric-label">kN/m²で支保が必要です</div>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -339,8 +339,15 @@ with tab1:
             # 安全率の表示（無限大の場合は特別な表示）
             if results['safety_factor'] == float('inf'):
                 sf_display = "∞"
+                sf_description = "十分に安全な状態です"
             else:
                 sf_display = f"{results['safety_factor']:.2f}"
+                if results['safety_factor'] >= 1.5:
+                    sf_description = "十分に安全な状態です"
+                elif results['safety_factor'] >= 1.0:
+                    sf_description = "注意が必要な状態です"
+                else:
+                    sf_description = "安全性に懸念があります"
             
             st.markdown(
                 f"""
@@ -349,7 +356,7 @@ with tab1:
                     <div class="metric-value {sf_color_class}">
                         {sf_display}
                     </div>
-                    <div class="metric-label">&nbsp;</div>
+                    <div class="metric-label">{sf_description}</div>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -549,21 +556,6 @@ with tab1:
             # 安全率計算結果の取得
             if results.get('true_safety_factor_result'):
                 sf_result = results['true_safety_factor_result']
-                
-                # 結果の表示
-                col_sf1, col_sf2 = st.columns([1, 1])
-                
-                with col_sf1:
-                    st.metric(
-                        label="真の安全率",
-                        value=f"{sf_result['safety_factor']:.3f}"
-                    )
-                
-                with col_sf2:
-                    st.metric(
-                        label="臨界低減係数",
-                        value=f"{sf_result['critical_reduction_factor']:.3f}"
-                    )
                 
                 # データの準備
                 eval_points = sf_result['evaluation_points']
