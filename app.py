@@ -545,6 +545,8 @@ with tab1:
                 # データの準備
                 eval_points = sf_result['evaluation_points']
                 factors = [p['factor'] for p in eval_points]
+                # 安全率に変換（安全率 = 1 / 低減係数）
+                safety_factors = [1.0/f if f > 0 else float('inf') for f in factors]
                 pressures = [p['P'] for p in eval_points]
                 coh_values = [p['coh'] for p in eval_points]
                 phi_values = [p['phi_deg'] for p in eval_points]
@@ -554,7 +556,7 @@ with tab1:
                 
                 # 必要支保圧の曲線
                 fig_sf.add_trace(go.Scatter(
-                    x=factors,
+                    x=safety_factors,
                     y=pressures,
                     mode='lines+markers',
                     name='必要支保圧',
@@ -566,19 +568,19 @@ with tab1:
                 fig_sf.add_hline(y=0, line_dash="dash", line_color="red", 
                                annotation_text="P = 0 (自立限界)")
                 
-                # 臨界点のマーカー
+                # 臨界点のマーカー（安全率の位置に配置）
                 fig_sf.add_trace(go.Scatter(
-                    x=[sf_result['critical_reduction_factor']],
+                    x=[sf_result['safety_factor']],
                     y=[0],
                     mode='markers+text',
                     marker=dict(size=15, color='red', symbol='x'),
                     name='臨界点',
-                    text=[f"低減係数 = {sf_result['critical_reduction_factor']:.3f}<br>安全率 = {sf_result['safety_factor']:.3f}"],
+                    text=[f"安全率 = {sf_result['safety_factor']:.3f}"],
                     textposition="top center",
                     textfont=dict(size=12, color='red')
                 ))
                 
-                # 元の強度での点
+                # 元の強度での点（安全率 = 1.0）
                 fig_sf.add_trace(go.Scatter(
                     x=[1.0],
                     y=[sf_result['original_P']],
@@ -589,12 +591,16 @@ with tab1:
                     textposition="top center"
                 ))
                 
+                # 安全率 = 1.0 の縦線を追加
+                fig_sf.add_vline(x=1.0, line_dash="dot", line_color="gray",
+                               annotation_text="安全率 = 1.0")
+                
                 fig_sf.update_layout(
-                    title="強度低減係数と必要支保圧の関係",
-                    xaxis_title="強度低減係数",
+                    title="安全率と必要支保圧の関係",
+                    xaxis_title="安全率",
                     yaxis_title="必要支保圧 P (kN/m²)",
                     height=500,
-                    xaxis=dict(range=[0, 1.6]),
+                    xaxis=dict(range=[0, max(safety_factors) * 1.1] if max(safety_factors) < float('inf') else [0, 10]),
                     showlegend=True
                 )
                 
@@ -610,19 +616,21 @@ with tab1:
                     # 粘着力の変化
                     fig_coh = go.Figure()
                     fig_coh.add_trace(go.Scatter(
-                        x=factors,
+                        x=safety_factors,
                         y=coh_values,
                         mode='lines+markers',
                         name='粘着力',
                         line=dict(width=2, color='orange')
                     ))
-                    fig_coh.add_vline(x=sf_result['critical_reduction_factor'], 
+                    fig_coh.add_vline(x=sf_result['safety_factor'], 
                                     line_dash="dash", line_color="red")
+                    fig_coh.add_vline(x=1.0, line_dash="dot", line_color="gray")
                     fig_coh.update_layout(
                         title="粘着力の変化",
-                        xaxis_title="強度低減係数",
+                        xaxis_title="安全率",
                         yaxis_title="粘着力 coh (kPa)",
-                        height=300
+                        height=300,
+                        xaxis=dict(range=[0, max(safety_factors) * 1.1] if max(safety_factors) < float('inf') else [0, 10])
                     )
                     st.plotly_chart(fig_coh, use_container_width=True)
                 
@@ -630,19 +638,21 @@ with tab1:
                     # 内部摩擦角の変化
                     fig_phi = go.Figure()
                     fig_phi.add_trace(go.Scatter(
-                        x=factors,
+                        x=safety_factors,
                         y=phi_values,
                         mode='lines+markers',
                         name='内部摩擦角',
                         line=dict(width=2, color='green')
                     ))
-                    fig_phi.add_vline(x=sf_result['critical_reduction_factor'], 
+                    fig_phi.add_vline(x=sf_result['safety_factor'], 
                                     line_dash="dash", line_color="red")
+                    fig_phi.add_vline(x=1.0, line_dash="dot", line_color="gray")
                     fig_phi.update_layout(
                         title="内部摩擦角の変化",
-                        xaxis_title="強度低減係数",
+                        xaxis_title="安全率",
                         yaxis_title="内部摩擦角 φ (度)",
-                        height=300
+                        height=300,
+                        xaxis=dict(range=[0, max(safety_factors) * 1.1] if max(safety_factors) < float('inf') else [0, 10])
                     )
                     st.plotly_chart(fig_phi, use_container_width=True)
                 
@@ -650,6 +660,7 @@ with tab1:
                 with st.expander("計算詳細データ"):
                     # DataFrameの作成
                     df_sf = pd.DataFrame({
+                        '安全率': safety_factors,
                         '強度低減係数': factors,
                         '粘着力 (kPa)': coh_values,
                         '内部摩擦角 (度)': phi_values,
@@ -658,7 +669,7 @@ with tab1:
                     
                     # 臨界点の行を強調
                     def highlight_critical(row):
-                        if abs(row['強度低減係数'] - sf_result['critical_reduction_factor']) < 0.01:
+                        if abs(row['安全率'] - sf_result['safety_factor']) < 0.01:
                             return ['background-color: #FFB6C1'] * len(row)
                         return [''] * len(row)
                     
