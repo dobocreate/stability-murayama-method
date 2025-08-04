@@ -219,8 +219,8 @@ with tab1:
             
             emoji = {"安定": "😊", "安定（自立）": "😊", "要注意": "😐", "不安定": "😰"}
             
-            # メトリクスの表示（2:1:1の割合）
-            col2_1, col2_2, col2_3 = st.columns([2, 1, 1])
+            # メトリクスの表示（1:1の割合）
+            col2_1, col2_2 = st.columns([1, 1])
             
             with col2_1:
                 st.metric(
@@ -240,12 +240,6 @@ with tab1:
                         label="安全率",
                         value=f"{results['safety_factor']:.2f}"
                     )
-            
-            with col2_3:
-                st.metric(
-                    label="安定度",
-                    value=f"{results['stability_percentage']:.0f}%"
-                )
             
             # 安定性評価の表示
             st.markdown(
@@ -267,8 +261,8 @@ with tab1:
         # 概念図
         st.markdown("---")
         st.subheader("概念図")
-        # 50%サイズで表示するため、中央の列に配置
-        col_empty1, col_image, col_empty2 = st.columns([1, 2, 1])
+        # 80%サイズで表示するため、中央の列に配置
+        col_empty1, col_image, col_empty2 = st.columns([1, 4, 1])
         with col_image:
             st.image("data/image.jpg", use_container_width=True)
     
