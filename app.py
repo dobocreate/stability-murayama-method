@@ -286,13 +286,22 @@ with tab1:
         # 1行レイアウトで全ての評価結果を表示
         col_eval1, col_eval2, col_eval3 = st.columns([1, 1, 1])
         
+        # 安定性判定の色分け
+        stability_value = results['stability']
+        if stability_value in ["安定", "安定（自立）", "安定（自立・要注意）"]:
+            stability_color_class = "metric-value-safe"
+        elif stability_value in ["要注意（自立）", "要注意", "要注意（要対策）"]:
+            stability_color_class = "metric-value-warning"
+        else:
+            stability_color_class = "metric-value-danger"
+        
         with col_eval1:
             # 安定性評価の表示
             st.markdown(
                 f"""
                 <div class="custom-metric-card">
                     <div class="metric-label">🏗️ 安定性判定</div>
-                    <div class="{stability_class[results['stability']]}">
+                    <div class="metric-value {stability_color_class}">
                         {results['stability']} {emoji[results['stability']]}
                     </div>
                     <div class="metric-label">切羽は{results['stability']}状態です</div>
