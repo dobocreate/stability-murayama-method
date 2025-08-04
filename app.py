@@ -248,8 +248,8 @@ with tab1:
         
         st.markdown("---")
         
-        # 安定性評価結果
-        st.subheader("安定性評価結果")
+        # 安定性の評価結果
+        st.subheader("安定性の評価結果")
         
         # 結果の表示
         if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
@@ -264,6 +264,19 @@ with tab1:
             }
             
             emoji = {"安定": "😊", "安定（自立）": "😊", "要注意": "😐", "不安定": "😰"}
+            
+            # 安定性評価の表示
+            st.markdown(
+                f"""
+                <div class="metric-container">
+                    <div class="{stability_class[results['stability']]}">
+                        {results['stability']} {emoji[results['stability']]}
+                    </div>
+                    <p>切羽は{results['stability']}状態です</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
             
             # カスタムメトリクスの表示（1:1の割合）
             col2_1, col2_2 = st.columns([1, 1])
@@ -319,19 +332,6 @@ with tab1:
                     """,
                     unsafe_allow_html=True
                 )
-            
-            # 安定性評価の表示
-            st.markdown(
-                f"""
-                <div class="metric-container">
-                    <div class="{stability_class[results['stability']]}">
-                        {results['stability']} {emoji[results['stability']]}
-                    </div>
-                    <p>切羽は{results['stability']}状態です</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
     
     # 詳細結果の表示
     if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
