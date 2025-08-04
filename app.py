@@ -120,35 +120,6 @@ with tab1:
             help="地山の粘着力を入力してください（kPa単位）"
         )
         
-        # 詳細パラメータ
-        st.markdown("---")
-        st.subheader("詳細パラメータ")
-        
-        with st.expander("係数の設定（通常は変更不要）"):
-            alpha = st.number_input(
-                "影響幅係数 α",
-                min_value=1.0,
-                max_value=3.0,
-                value=1.8,
-                step=0.1,
-                help="標準値: 1.8（有効幅係数 = α/2 = 0.9）"
-            )
-            
-            K = st.number_input(
-                "経験係数 K",
-                min_value=0.5,
-                max_value=2.0,
-                value=1.0,
-                step=0.1,
-                help="Terzaghi実験による係数（標準値: 1.0、範囲: 1.0～1.5）"
-            )
-            
-            force_finite_cover = st.checkbox(
-                "有限土被り式を強制的に使用", 
-                value=True,
-                help="チェックすると深部条件（H > 1.5B）でも常に有限土被り式を使用します"
-            )
-        
         # 解析パラメータ
         st.markdown("---")
         st.subheader("解析パラメータ")
@@ -177,6 +148,35 @@ with tab1:
         # 計算点数は自動で決定（1度刻み）
         n_points = theta_max - theta_min + 1
         st.write(f"**計算点数**: {n_points} 点（1度刻み）")
+        
+        # 詳細パラメータ
+        st.markdown("---")
+        st.subheader("詳細パラメータ")
+        
+        with st.expander("係数の設定（通常は変更不要）"):
+            alpha = st.number_input(
+                "影響幅係数 α",
+                min_value=1.0,
+                max_value=3.0,
+                value=1.8,
+                step=0.1,
+                help="標準値: 1.8（有効幅係数 = α/2 = 0.9）"
+            )
+            
+            K = st.number_input(
+                "経験係数 K",
+                min_value=0.5,
+                max_value=2.0,
+                value=1.0,
+                step=0.1,
+                help="Terzaghi実験による係数（標準値: 1.0、範囲: 1.0～1.5）"
+            )
+            
+            force_finite_cover = st.checkbox(
+                "有限土被り式を強制的に使用", 
+                value=True,
+                help="チェックすると深部条件（H > 1.5B）でも常に有限土被り式を使用します"
+            )
     
     with col2:
         # 切羽安定性評価結果
@@ -305,7 +305,7 @@ with tab1:
                 mode='markers+text',
                 marker=dict(size=15, color='red', symbol='x'),
                 name='最大支保圧点',
-                text=[f"θ_d = {results['critical_theta_deg']:.1f}°<br>P = {results['max_P']:.2f} kN/m²"],
+                text=[f"最大支保圧点<br>θ_d = {results['critical_theta_deg']:.1f}°<br>P = {results['max_P']:.2f} kN/m²"],
                 textposition="top center",
                 textfont=dict(size=12, color='red'),
                 showlegend=True
