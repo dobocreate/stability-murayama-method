@@ -359,9 +359,9 @@ class MurayamaCalculatorRevised:
                 })
                 
                 if P_reduced > 0:
-                    upper = factor
+                    lower = factor  # まだ不安定なので強度を上げる必要がある
                 else:
-                    lower = factor
+                    upper = factor  # 安定しているので強度を下げられる
                     
             except Exception:
                 # 計算エラーの場合は上限を下げる
