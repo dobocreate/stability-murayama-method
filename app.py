@@ -86,7 +86,7 @@ st.markdown("""
 
 # タイトル（中央配置）
 st.markdown("""
-<h1 style='text-align: center;'>🚇 トンネル切羽の安定性評価アプリ（村山の式）</h1>
+<h1 style='text-align: center;'>トンネル切羽の安定性評価アプリ（村山の式）</h1>
 """, unsafe_allow_html=True)
 
 # タブの作成
@@ -699,6 +699,7 @@ with tab1:
 
 with tab2:
     # 技術情報ページ
+    st.warning("⚠️ **編集中** - このページはまだ完成していません")
     st.header("技術情報（修正版）")
     
     st.subheader("1. 実装の特徴")
@@ -771,6 +772,7 @@ with tab2:
 
 with tab3:
     # 使い方ページ
+    st.warning("⚠️ **編集中** - このページはまだ完成していません")
     st.header("使い方（修正版）")
     
     st.subheader("基本的な操作手順")
