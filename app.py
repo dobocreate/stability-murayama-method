@@ -246,6 +246,7 @@ with tab1:
         col_empty1, col_image, col_empty2 = st.columns([1, 4, 1])
         with col_image:
             st.image("data/image.jpg", use_container_width=True)
+            st.caption("引用元：「トンネル切羽安定に関する調査研究，平成9年12月，(財)高速道路技術センター」p.4")
     
     # 詳細結果の表示
     if hasattr(st.session_state, 'calculated') and st.session_state.calculated:
