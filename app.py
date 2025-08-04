@@ -97,7 +97,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # タイトル下にスペースを追加
-st.write("")
+st.markdown("<br>", unsafe_allow_html=True)
 
 # タブの作成
 tab1, tab2, tab3 = st.tabs(["安定性評価", "技術情報", "使い方"])
