@@ -96,6 +96,9 @@ st.markdown("""
 <h1 style='text-align: center;'>トンネル切羽の安定性評価アプリ（村山の式）</h1>
 """, unsafe_allow_html=True)
 
+# タイトル下にスペースを追加
+st.write("")
+
 # タブの作成
 tab1, tab2, tab3 = st.tabs(["安定性評価", "技術情報", "使い方"])
 
