@@ -100,55 +100,60 @@ with tab1:
         # 地盤条件の入力
         st.subheader("地盤条件")
         
-        # 土被り（最初に配置）
-        H = st.number_input(
-            "土被り H (m)",
-            min_value=0.0,
-            max_value=200.0,
-            value=30.0,
-            step=5.0,
-            help="地表面からトンネル天端までの土被りを入力してください"
-        )
+        # 2列レイアウトで配置
+        col1, col2 = st.columns(2)
         
-        # 切羽高さ
-        H_f = st.number_input(
-            "切羽高さ H_f (m)",
-            min_value=0.1,
-            max_value=50.0,
-            value=10.0,
-            step=0.5,
-            help="トンネル断面の高さを入力してください"
-        )
+        with col1:
+            # 土被り（最初に配置）
+            H = st.number_input(
+                "土被り H (m)",
+                min_value=0.0,
+                max_value=200.0,
+                value=30.0,
+                step=5.0,
+                help="地表面からトンネル天端までの土被りを入力してください"
+            )
+            
+            # 切羽高さ
+            H_f = st.number_input(
+                "切羽高さ H_f (m)",
+                min_value=0.1,
+                max_value=50.0,
+                value=10.0,
+                step=0.5,
+                help="トンネル断面の高さを入力してください"
+            )
         
-        # 地山単位体積重量
-        gamma = st.number_input(
-            "地山単位体積重量 γ (kN/m³)",
-            min_value=10.0,
-            max_value=30.0,
-            value=20.0,
-            step=0.5,
-            help="地山の単位体積重量を入力してください"
-        )
-        
-        # 地山内部摩擦角
-        phi = st.number_input(
-            "地山内部摩擦角 φ (度)",
-            min_value=0.0,
-            max_value=60.0,
-            value=30.0,
-            step=1.0,
-            help="地山の内部摩擦角を入力してください"
-        )
-        
-        # 地山粘着力
-        coh = st.number_input(
-            "地山粘着力 coh (kPa)",
-            min_value=0.0,
-            max_value=1000.0,
-            value=20.0,
-            step=5.0,
-            help="地山の粘着力を入力してください（kPa単位）"
-        )
+        with col2:
+            # 地山単位体積重量
+            gamma = st.number_input(
+                "地山単位体積重量 γ (kN/m³)",
+                min_value=10.0,
+                max_value=30.0,
+                value=20.0,
+                step=0.5,
+                help="地山の単位体積重量を入力してください"
+            )
+            
+            # 地山内部摩擦角
+            phi = st.number_input(
+                "地山内部摩擦角 φ (度)",
+                min_value=0.0,
+                max_value=60.0,
+                value=30.0,
+                step=1.0,
+                help="地山の内部摩擦角を入力してください"
+            )
+            
+            # 地山粘着力
+            coh = st.number_input(
+                "地山粘着力 coh (kPa)",
+                min_value=0.0,
+                max_value=1000.0,
+                value=20.0,
+                step=5.0,
+                help="地山の粘着力を入力してください（kPa単位）"
+            )
         
         # 解析パラメータ
         st.subheader("解析パラメータ")
