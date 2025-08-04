@@ -158,30 +158,25 @@ with tab1:
         with theta_col1:
             theta_min = st.number_input(
                 "最小値",
-                min_value=10.0,
-                max_value=80.0,
-                value=20.0,
-                step=5.0,
+                min_value=10,
+                max_value=80,
+                value=20,
+                step=1,
                 key="theta_min"
             )
         with theta_col2:
             theta_max = st.number_input(
                 "最大値",
-                min_value=20.0,
-                max_value=90.0,
-                value=80.0,
-                step=5.0,
+                min_value=20,
+                max_value=90,
+                value=80,
+                step=1,
                 key="theta_max"
             )
         
-        n_points = st.number_input(
-            "計算点数",
-            min_value=10,
-            max_value=50,
-            value=20,
-            step=5,
-            help="角度の分割数"
-        )
+        # 計算点数は自動で決定（1度刻み）
+        n_points = theta_max - theta_min + 1
+        st.write(f"**計算点数**: {n_points} 点（1度刻み）")
     
     with col2:
         # 切羽安定性評価結果
@@ -280,7 +275,7 @@ with tab1:
         st.markdown("---")
         st.subheader("詳細解析結果")
         
-        results_tab1, results_tab2, results_tab3 = st.tabs(["滑り面解析", "感度分析", "詳細データ"])
+        results_tab1, results_tab2 = st.tabs(["滑り面解析", "詳細データ"])
         
         with results_tab1:
             # 必要支保圧の分布グラフ
@@ -323,90 +318,6 @@ with tab1:
             st.plotly_chart(fig, use_container_width=True)
         
         with results_tab2:
-            # 幾何パラメータの変化
-            col_sens1, col_sens2 = st.columns(2)
-            
-            with col_sens1:
-                # r0とBの変化
-                fig1 = go.Figure()
-                
-                # theta_valuesを取得
-                theta_values = results.get('theta_degrees', [])
-                
-                # 詳細結果が存在するか確認
-                if results.get('detailed_results') and len(results['detailed_results']) > 0:
-                    r0_values = [r.get('r0_m', 0) for r in results['detailed_results']]
-                    B_values = [r.get('B_m', 0) for r in results['detailed_results']]
-                else:
-                    # デフォルト値を使用
-                    r0_values = [results.get('critical_r0', 0)] * len(theta_values)
-                    B_values = [0] * len(theta_values)
-                
-                fig1.add_trace(go.Scatter(
-                    x=theta_values,
-                    y=r0_values,
-                    mode='lines+markers',
-                    name='r₀',
-                    yaxis='y'
-                ))
-                
-                fig1.add_trace(go.Scatter(
-                    x=theta_values,
-                    y=B_values,
-                    mode='lines+markers',
-                    name='B',
-                    yaxis='y2',
-                    line=dict(dash='dash')
-                ))
-                
-                fig1.update_layout(
-                    title="幾何パラメータの変化",
-                    xaxis_title="探索角度 θ_d (度)",
-                    yaxis=dict(title="r₀ (m)", side='left'),
-                    yaxis2=dict(title="B (m)", overlaying='y', side='right'),
-                    height=400
-                )
-                st.plotly_chart(fig1, use_container_width=True)
-            
-            with col_sens2:
-                # 荷重パラメータの変化
-                fig2 = go.Figure()
-                
-                # 安全な値の取得
-                if results.get('detailed_results') and len(results['detailed_results']) > 0:
-                    q_values = [r.get('q_kN_m2', 0) for r in results['detailed_results']]
-                    Wf_values = [r.get('Wf_kN', 0) for r in results['detailed_results']]
-                else:
-                    q_values = [0] * len(theta_values)
-                    Wf_values = [0] * len(theta_values)
-                
-                fig2.add_trace(go.Scatter(
-                    x=theta_values,
-                    y=q_values,
-                    mode='lines+markers',
-                    name='等価合力 q',
-                    yaxis='y'
-                ))
-                
-                fig2.add_trace(go.Scatter(
-                    x=theta_values,
-                    y=Wf_values,
-                    mode='lines+markers',
-                    name='自重 Wf',
-                    yaxis='y2',
-                    line=dict(dash='dash')
-                ))
-                
-                fig2.update_layout(
-                    title="荷重パラメータの変化",
-                    xaxis_title="探索角度 θ_d (度)",
-                    yaxis=dict(title="q (kN/m²)", side='left'),
-                    yaxis2=dict(title="Wf (kN)", overlaying='y', side='right'),
-                    height=400
-                )
-                st.plotly_chart(fig2, use_container_width=True)
-        
-        with results_tab3:
             # 詳細データの表示
             st.write("**入力パラメータ**")
             input_data = {
@@ -477,15 +388,16 @@ with tab2:
     # 技術情報ページ
     st.header("技術情報（修正版）")
     
-    st.subheader("1. 主な修正点")
+    st.subheader("1. 実装の特徴")
     st.write("""
-    本バージョンは、murayama_stability_design_revised.mdに基づく実装で、以下の点が修正されています：
+    本システムは村山の式による切羽安定性評価を実装したもので、以下の特徴があります：
     
     - **r₀を入力から削除**：幾何の閉合式から内部で自動決定
     - **支保圧の作用腕**：l_p = r₀sinφ + H_f/2 に統一
     - **粘着抵抗モーメント**：閉形式 Mc = coh(rd² - r₀²)/(2tanφ) を採用
     - **上載荷重の等価合力**：影響幅係数αと経験係数Kを導入
     - **有限土被りの考慮**：深部前提と有限土被りの切り替えが可能
+    - **分岐なし実装**：条件分岐を削除し、数値的安定性を向上
     """)
     
     st.subheader("2. 幾何の閉合")
@@ -516,10 +428,26 @@ with tab2:
     - 標準値：α = 1.8、K = 1.0
     """)
     
-    st.subheader("4. 粘着の抵抗モーメント")
+    st.subheader("4. 自重の計算")
+    st.write("""
+    **分岐なし実装による統一的な計算式**
+    
+    自重の等価合力の重心位置 lw2 は、以下の統一式で計算されます：
+    """)
+    
+    st.latex(r"""
+    lw_2 = S\cos(\phi + T) + \frac{2}{3} \cdot \frac{U}{1-\cos V} \cdot \frac{1-\cos^2 V}{V-\sin V \cos V} \cdot \sin V \cdot \cos\left(\arctan\frac{B}{H_f}\right) - \frac{U\cos V}{1-\cos V} \cdot \cos\left(\arctan\frac{B}{H_f}\right)
+    """)
+    
+    st.write("""
+    ここで、中間パラメータ S, T, U, V は対数らせん滑り面の幾何形状から決定されます。
+    この実装により、条件分岐がなくなり、数値的安定性が向上しました。
+    """)
+    
+    st.subheader("5. 粘着の抵抗モーメント")
     st.latex(r"M_c = \frac{coh(r_d^2 - r_0^2)}{2\tan\phi}")
     
-    st.subheader("5. 支保圧の算定")
+    st.subheader("6. 支保圧の算定")
     st.latex(r"""
     P = \frac{W_f \cdot l_w + q \cdot B \cdot \left(l_a + \frac{B}{2}\right) - M_c}{l_p}
     """)
@@ -548,7 +476,7 @@ with tab3:
     
     4. **解析パラメータの設定**
        - 探索角度 θ_d の範囲を設定（標準: 20°～80°）
-       - 計算点数を設定
+       - 計算は1度刻みで自動実行されます
     
     5. **解析の実行**
        - 「解析の実行」ボタンをクリック

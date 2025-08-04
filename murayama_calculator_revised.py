@@ -368,24 +368,33 @@ class MurayamaCalculatorRevised:
         }
     
     def parametric_study(self, theta_range: tuple = (20, 80), 
-                        n_points: int = 20) -> Dict[str, Any]:
+                        n_points: int = None) -> Dict[str, Any]:
         """
         パラメトリックスタディ（Streamlit互換性のため）
         
         Args:
             theta_range: θの範囲 (最小値, 最大値) [度]
-            n_points: 計算点数
+            n_points: 計算点数（Noneの場合は1度刻み）
             
         Returns:
             解析結果の辞書（旧インターフェース互換）
         """
-        theta_step = (theta_range[1] - theta_range[0]) / (n_points - 1)
+        # 1度刻みの計算
+        if n_points is None:
+            theta_step = 1.0
+            n_points = int(theta_range[1] - theta_range[0]) + 1
+        else:
+            theta_step = (theta_range[1] - theta_range[0]) / (n_points - 1)
         
         # 臨界圧の探索
         critical = self.find_critical_pressure(theta_range, theta_step)
         
         # 旧インターフェース用のデータ整形
-        theta_degrees = np.linspace(theta_range[0], theta_range[1], n_points)
+        if n_points is None or theta_step == 1.0:
+            # 1度刻みの場合
+            theta_degrees = np.arange(theta_range[0], theta_range[1] + 1, 1)
+        else:
+            theta_degrees = np.linspace(theta_range[0], theta_range[1], n_points)
         P_values = []
         detailed_results = []
         
