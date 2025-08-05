@@ -289,7 +289,7 @@ with tab1:
                     <div class="metric-value {stability_color_class}">
                         {stability_value} {emoji_symbol}
                     </div>
-                    <div class="metric-label">{detailed_stability}</div>
+                    <div class="metric-label">&nbsp;</div>
                 </div>
                 """,
                 unsafe_allow_html=True
