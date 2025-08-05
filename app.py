@@ -93,7 +93,7 @@ st.markdown("""
 
 # タイトル（中央配置）
 st.markdown("""
-<h1 style='text-align: center;'>トンネル切羽の安定性評価アプリ（村山の式）</h1>
+<h1 style='text-align: center;'>トンネル切羽の安定性評価アプリ<br>～ 村山の式 ～</h1>
 """, unsafe_allow_html=True)
 
 # タイトル下にスペースを追加
