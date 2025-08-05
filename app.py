@@ -300,20 +300,6 @@ with tab1:
             stability_color_class = "metric-value-danger"
             emoji_symbol = "😰"
         
-        with col_eval1:
-            # 安定性評価の表示
-            st.markdown(
-                f"""
-                <div class="custom-metric-card">
-                    <div class="metric-label">🏗️ 安定性判定</div>
-                    <div class="metric-value {stability_color_class}">
-                        {stability_value} {emoji_symbol}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-        
         # 必要切羽押え力の色分け
         max_p = results['max_P']
         if max_p <= 50:
@@ -331,6 +317,20 @@ with tab1:
             sf_color_class = "metric-value-warning"
         else:
             sf_color_class = "metric-value-danger"
+        
+        with col_eval1:
+            # 安定性評価の表示
+            st.markdown(
+                f"""
+                <div class="custom-metric-card">
+                    <div class="metric-label">🏗️ 安定性判定</div>
+                    <div class="metric-value {stability_color_class}">
+                        {stability_value} {emoji_symbol}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
         
         with col_eval2:
             st.markdown(
