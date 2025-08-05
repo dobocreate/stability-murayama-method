@@ -567,11 +567,11 @@ class MurayamaCalculatorRevised:
         if max_P <= 0:
             # 支保不要（自立可能）
             if safety_factor >= 1.5:
-                stability = "安定（自立）"
+                stability = "安定"
             elif safety_factor >= 1.2:
                 stability = "安定（自立・要注意）"
             else:
-                stability = "要注意（自立）"
+                stability = "要注意"
         else:
             # 支保必要（P > 0）
             if safety_factor >= 1.0:
@@ -579,11 +579,11 @@ class MurayamaCalculatorRevised:
                 # 計算エラーの可能性があるため警告
                 stability = "計算エラー（要確認）"
             elif safety_factor >= 0.8:
-                stability = "要注意（要対策）"
+                stability = "要注意"
             elif safety_factor >= 0.6:
-                stability = "不安定（要対策）"
+                stability = "不安定"
             else:
-                stability = "危険（要対策）"
+                stability = "危険"
         
         return {
             'max_P': max_P,

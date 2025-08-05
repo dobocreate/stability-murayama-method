@@ -425,7 +425,7 @@ with tab1:
             with col_result1:
                 st.write("**入力パラメータ**")
                 input_data = {
-                    "パラメータ": ["切羽高さ H_f", "地山単位体積重量 γ", "地山内部摩擦角 φ", "地山粘着力 coh",
+                    "パラメータ": ["切羽高さ Hf", "地山単位体積重量 γ", "地山内部摩擦角 φ", "地山粘着力 c",
                             "土被り H", "影響幅係数 α", "経験係数 K"],
                     "値": [f"{H_f} m", f"{gamma} kN/m³", f"{phi}°", f"{coh} kPa",
                         f"{H} m" if H is not None else "深部前提", f"{alpha}", f"{K}"],
@@ -826,7 +826,7 @@ st.markdown("---")
 st.markdown(
     """
     <div style='text-align: center; color: #888;'>
-    村山の式を用いたトンネル切羽安定性評価システム（修正版） v2.0
+    ドボクリエイト株式会社
     </div>
     """,
     unsafe_allow_html=True
