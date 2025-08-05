@@ -126,7 +126,7 @@ with tab1:
             
             # 切羽高さ
             H_f = st.number_input(
-                "切羽高さ H_f (m)",
+                "切羽高さ Hf (m)",
                 min_value=0.1,
                 max_value=50.0,
                 value=10.0,
@@ -157,7 +157,7 @@ with tab1:
             
             # 地山粘着力
             coh = st.number_input(
-                "地山粘着力 coh (kPa)",
+                "地山の粘着力 c (kPa)",
                 min_value=0.0,
                 max_value=1000.0,
                 value=20.0,
