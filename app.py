@@ -166,9 +166,9 @@ with tab1:
             )
         
         # 詳細パラメータ
-        st.subheader("詳細パラメータ（通常は設定不要）")
+        st.subheader("詳細パラメータ")
         
-        with st.expander("係数の設定および探索角度の設定"):
+        with st.expander("係数の設定および探索角度の設定（通常は設定不要）"):
             st.write("**村山の式に適用する係数の設定**")
             alpha = st.number_input(
                 "影響幅係数 α",
