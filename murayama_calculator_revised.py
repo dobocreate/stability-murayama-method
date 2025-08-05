@@ -566,15 +566,15 @@ class MurayamaCalculatorRevised:
         # 安定性の評価（P値と安全率の両方を考慮）
         if max_P <= 0:
             # 支保不要（自立可能）
+            stability = "安定"
             if safety_factor >= 1.5:
-                stability = "安定"
                 detailed_stability = "安定"
             elif safety_factor >= 1.2:
-                stability = "安定"
                 detailed_stability = "安定（自立・要注意）"
+            elif safety_factor >= 1.0:
+                detailed_stability = "安定（自立・安全率やや低）"
             else:
-                stability = "不安定"
-                detailed_stability = "要注意（自立）"
+                detailed_stability = "安定（自立・安全率低）"
         else:
             # 支保必要（P > 0）
             if safety_factor >= 1.0:
