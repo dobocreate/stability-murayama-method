@@ -317,11 +317,11 @@ with tab1:
             st.markdown(
                 f"""
                 <div class="custom-metric-card">
-                    <div class="metric-label">💪 必要切羽押え力</div>
+                    <div class="metric-label">💪 必要切羽押え力P (kN/m²)</div>
                     <div class="metric-value {p_color_class}">
                         {results['max_P']:.2f}
                     </div>
-                    <div class="metric-label">kN/m²</div>
+                    <div class="metric-label">&nbsp;</div>
                 </div>
                 """,
                 unsafe_allow_html=True
