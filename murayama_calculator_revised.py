@@ -563,34 +563,13 @@ class MurayamaCalculatorRevised:
         true_sf_result = self.calculate_true_safety_factor(critical_result['theta_d'])
         safety_factor = true_sf_result['safety_factor']
         
-        # 安定性の評価（P値と安全率の両方を考慮）
+        # 安定性の評価（P値のみで判定）
         if max_P <= 0:
-            # 支保不要（自立可能）
             stability = "安定"
-            if safety_factor >= 1.5:
-                detailed_stability = "安定"
-            elif safety_factor >= 1.2:
-                detailed_stability = "安定（自立・要注意）"
-            elif safety_factor >= 1.0:
-                detailed_stability = "安定（自立・安全率やや低）"
-            else:
-                detailed_stability = "安定（自立・安全率低）"
+            detailed_stability = "安定"
         else:
-            # 支保必要（P > 0）
-            if safety_factor >= 1.0:
-                # 安全率が1以上は物理的にあり得ない（P>0なら安全率<1のはず）
-                # 計算エラーの可能性があるため警告
-                stability = "不安定"
-                detailed_stability = "計算エラー（要確認）"
-            elif safety_factor >= 0.8:
-                stability = "不安定"
-                detailed_stability = "要注意（要対策）"
-            elif safety_factor >= 0.6:
-                stability = "不安定"
-                detailed_stability = "不安定（要対策）"
-            else:
-                stability = "不安定"
-                detailed_stability = "危険（要対策）"
+            stability = "不安定"
+            detailed_stability = "不安定"
         
         return {
             'max_P': max_P,
