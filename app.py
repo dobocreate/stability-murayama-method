@@ -103,18 +103,10 @@ st.markdown("<br>", unsafe_allow_html=True)
 tab1, tab2, tab3 = st.tabs(["安定性評価", "技術情報", "使い方"])
 
 with tab1:
-    # 2列レイアウト
-    col1, col2 = st.columns([1, 1])
+    # 3列レイアウトにして、中央をスペーサーとして使用
+    col1, spacer, col2 = st.columns([1, 0.2, 1])  # 中央に0.2の幅のスペーサー
     
     with col1:
-        # 1列目に右側のpaddingを追加
-        st.markdown("""
-        <style>
-        .stColumn:nth-child(1) {
-            padding-right: 5rem !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
         
         # 地盤条件の入力
         st.subheader("地盤条件")
@@ -260,14 +252,9 @@ with tab1:
                 st.error(f"計算エラー: {str(e)}")
                 st.session_state.calculated = False
     
+    # spacerカラムは空のまま（自動的にスペースになる）
+    
     with col2:
-        # タイトル高さを揃えるためのスペーサー（1列目のCSSマークダウンと同じ高さ）
-        st.markdown("""
-        <style>
-        /* 概念図側のスペーサー */
-        </style>
-        """, unsafe_allow_html=True)
-        
         # 概念図
         st.subheader("概念図")
         # 80%サイズで表示するため、中央の列に配置
