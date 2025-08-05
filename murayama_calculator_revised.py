@@ -568,22 +568,29 @@ class MurayamaCalculatorRevised:
             # 支保不要（自立可能）
             if safety_factor >= 1.5:
                 stability = "安定"
+                detailed_stability = "安定"
             elif safety_factor >= 1.2:
-                stability = "安定（自立・要注意）"
+                stability = "安定"
+                detailed_stability = "安定（自立・要注意）"
             else:
-                stability = "要注意"
+                stability = "不安定"
+                detailed_stability = "要注意（自立）"
         else:
             # 支保必要（P > 0）
             if safety_factor >= 1.0:
                 # 安全率が1以上は物理的にあり得ない（P>0なら安全率<1のはず）
                 # 計算エラーの可能性があるため警告
-                stability = "計算エラー（要確認）"
+                stability = "不安定"
+                detailed_stability = "計算エラー（要確認）"
             elif safety_factor >= 0.8:
-                stability = "要注意"
+                stability = "不安定"
+                detailed_stability = "要注意（要対策）"
             elif safety_factor >= 0.6:
                 stability = "不安定"
+                detailed_stability = "不安定（要対策）"
             else:
-                stability = "危険"
+                stability = "不安定"
+                detailed_stability = "危険（要対策）"
         
         return {
             'max_P': max_P,
@@ -592,6 +599,7 @@ class MurayamaCalculatorRevised:
             'critical_geometry': critical_result['geometry'],
             'critical_params': critical_result,
             'stability': stability,
+            'detailed_stability': detailed_stability,
             'safety_factor': safety_factor,
             'true_safety_factor_result': true_sf_result,
             'all_results': results
@@ -676,6 +684,7 @@ class MurayamaCalculatorRevised:
             },
             'safety_factor': critical['safety_factor'],
             'stability': critical['stability'],
+            'detailed_stability': critical['detailed_stability'],
             'stability_percentage': min(100, critical['safety_factor'] * 50) if critical['safety_factor'] != float('inf') else 100,
             'true_safety_factor_result': critical.get('true_safety_factor_result', None)
         }

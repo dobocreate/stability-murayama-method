@@ -262,32 +262,7 @@ with tab1:
         
         results = st.session_state.results
         
-        # 安定性の評価結果
-        stability_class = {
-            "安定": "stability-stable",
-            "安定（自立）": "stability-stable",
-            "安定（自立・要注意）": "stability-stable",
-            "要注意（自立）": "stability-warning",
-            "要注意": "stability-warning",
-            "要注意（要対策）": "stability-warning",
-            "不安定": "stability-unstable",
-            "不安定（要対策）": "stability-unstable",
-            "危険（要対策）": "stability-unstable",
-            "計算エラー（要確認）": "stability-unstable"
-        }
-        
-        emoji = {
-            "安定": "😊", 
-            "安定（自立）": "😊",
-            "安定（自立・要注意）": "😊",
-            "要注意（自立）": "😐",
-            "要注意": "😐",
-            "要注意（要対策）": "😐",
-            "不安定": "😰",
-            "不安定（要対策）": "😰",
-            "危険（要対策）": "😰",
-            "計算エラー（要確認）": "⚠️"
-        }
+        # 安定性の評価結果（簡素化済み）
         
         # 安定性の評価結果
         st.subheader("安定性の評価結果")
@@ -297,12 +272,13 @@ with tab1:
         
         # 安定性判定の色分け
         stability_value = results['stability']
-        if stability_value in ["安定", "安定（自立）", "安定（自立・要注意）"]:
+        detailed_stability = results.get('detailed_stability', stability_value)
+        if stability_value == "安定":
             stability_color_class = "metric-value-safe"
-        elif stability_value in ["要注意（自立）", "要注意", "要注意（要対策）"]:
-            stability_color_class = "metric-value-warning"
+            emoji_symbol = "😊"
         else:
             stability_color_class = "metric-value-danger"
+            emoji_symbol = "😰"
         
         with col_eval1:
             # 安定性評価の表示
@@ -311,9 +287,9 @@ with tab1:
                 <div class="custom-metric-card">
                     <div class="metric-label">🏗️ 安定性判定</div>
                     <div class="metric-value {stability_color_class}">
-                        {results['stability']} {emoji[results['stability']]}
+                        {stability_value} {emoji_symbol}
                     </div>
-                    <div class="metric-label">切羽は{results['stability']}状態です</div>
+                    <div class="metric-label">{detailed_stability}</div>
                 </div>
                 """,
                 unsafe_allow_html=True
