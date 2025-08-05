@@ -261,6 +261,13 @@ with tab1:
                 st.session_state.calculated = False
     
     with col2:
+        # タイトル高さを揃えるためのスペーサー（1列目のCSSマークダウンと同じ高さ）
+        st.markdown("""
+        <style>
+        /* 概念図側のスペーサー */
+        </style>
+        """, unsafe_allow_html=True)
+        
         # 概念図
         st.subheader("概念図")
         # 80%サイズで表示するため、中央の列に配置
