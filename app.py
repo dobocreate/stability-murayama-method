@@ -137,7 +137,7 @@ with tab1:
         with ground_col2:
             # 地山単位体積重量
             gamma = st.number_input(
-                "地山単位体積重量 γ (kN/m³)",
+                "地山の単位体積重量 γ (kN/m³)",
                 min_value=10.0,
                 max_value=30.0,
                 value=20.0,
@@ -147,7 +147,7 @@ with tab1:
             
             # 地山内部摩擦角
             phi = st.number_input(
-                "地山内部摩擦角 φ (度)",
+                "地山の内部摩擦角 φ (度)",
                 min_value=0.0,
                 max_value=60.0,
                 value=30.0,
