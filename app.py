@@ -104,9 +104,18 @@ tab1, tab2, tab3 = st.tabs(["安定性評価", "技術情報", "使い方"])
 
 with tab1:
     # 2列レイアウト
-    col1, col2 = st.columns([2, 3])
+    col1, col2 = st.columns([1, 1])
     
     with col1:
+        # 1列目に右側のpaddingを追加
+        st.markdown("""
+        <style>
+        .stColumn:nth-child(1) {
+            padding-right: 2rem !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
         # 地盤条件の入力
         st.subheader("地盤条件")
         
