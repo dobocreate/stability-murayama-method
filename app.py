@@ -542,38 +542,6 @@ with tab1:
             styled_preview = preview_df.style.apply(highlight_critical_row, axis=1)
             st.dataframe(styled_preview, use_container_width=True)
             
-            # 入力パラメータと計算結果サマリー
-            st.write("---")
-            col_summary1, col_summary2 = st.columns(2)
-            
-            with col_summary1:
-                st.write("**入力パラメータ**")
-                input_data = {
-                    "パラメータ": ["切羽高さ Hf", "地山の単位体積重量 γ", "地山の内部摩擦角 φ", "地山の粘着力 c",
-                            "土被り H", "影響幅係数 α", "経験係数 K"],
-                    "値": [f"{H_f} m", f"{gamma} kN/m³", f"{phi}°", f"{coh} kPa",
-                        f"{H} m" if H is not None else "深部前提", f"{alpha}", f"{K}"],
-                }
-                st.table(pd.DataFrame(input_data))
-            
-            with col_summary2:
-                st.write("**計算結果サマリー**")
-                # 安全率の表示（無限大の場合の処理）
-                safety_factor_str = "∞" if results['safety_factor'] == float('inf') else f"{results['safety_factor']:.2f}"
-                
-                summary_data = {
-                    "項目": ["必要押え力(最大)", "臨界探索角度 θd", "対応する初期半径 r₀", "水平投影幅 B", "安全率", "安定性評価"],
-                    "値": [
-                        f"{results['max_P']:.2f} kN/m²",
-                        f"{results['critical_theta_deg']:.1f}°",
-                        f"{results['critical_r0']:.2f} m",
-                        f"{results['critical_geometry']['B']:.2f} m",
-                        safety_factor_str,
-                        results['stability']
-                    ],
-                }
-                st.table(pd.DataFrame(summary_data))
-            
             # ダウンロードボタン
             st.download_button(
                 label="計算結果の出力",
