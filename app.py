@@ -318,7 +318,7 @@ with tab1:
                 unsafe_allow_html=True
             )
         
-        # 切羽抑え力の色分け
+        # 必要切羽押え力の色分け
         max_p = results['max_P']
         if max_p <= 50:
             p_color_class = "metric-value-safe"
@@ -340,7 +340,7 @@ with tab1:
             st.markdown(
                 f"""
                 <div class="custom-metric-card">
-                    <div class="metric-label">💪 切羽抑え力</div>
+                    <div class="metric-label">💪 必要切羽押え力</div>
                     <div class="metric-value {p_color_class}">
                         {results['max_P']:.2f}
                     </div>
@@ -375,7 +375,7 @@ with tab1:
         results_tab1, results_tab2, results_tab3 = st.tabs(["計算結果", "結果出力", "安全率計算"])
         
         with results_tab1:
-            # 切羽抑え力の分布グラフ
+            # 必要切羽押え力の分布グラフ
             fig = go.Figure()
             
             # theta_valuesを取得
@@ -391,7 +391,7 @@ with tab1:
                 x=theta_values,
                 y=P_values,
                 mode='lines+markers',
-                name='切羽抑え力',
+                name='必要切羽押え力',
                 line=dict(width=2)
             ))
             
@@ -401,17 +401,17 @@ with tab1:
                 y=[results['max_P']],
                 mode='markers+text',
                 marker=dict(size=15, color='red', symbol='x'),
-                name='最大切羽抑え力点',
-                text=[f"最大切羽抑え力点<br>θd = {results['critical_theta_deg']:.1f}°<br>P = {results['max_P']:.2f} kN/m²"],
+                name='必要押え力(最大)点',
+                text=[f"必要押え力(最大)点<br>θd = {results['critical_theta_deg']:.1f}°<br>P = {results['max_P']:.2f} kN/m²"],
                 textposition="top center",
                 textfont=dict(size=12, color='red'),
                 showlegend=True
             ))
             
             fig.update_layout(
-                title="探索角度θdと切羽抑え力の関係",
+                title="探索角度θdと必要切羽押え力Pの関係",
                 xaxis_title="探索角度 θd (度)",
-                yaxis_title="切羽抑え力 P (kN/m²)",
+                yaxis_title="必要切羽押え力 P (kN/m²)",
                 height=500
             )
             
@@ -437,7 +437,7 @@ with tab1:
                 safety_factor_str = "∞" if results['safety_factor'] == float('inf') else f"{results['safety_factor']:.2f}"
                 
                 summary_data = {
-                    "項目": ["最大切羽抑え力", "臨界探索角度 θd", "対応する初期半径 r₀", "安全率", "安定性評価"],
+                    "項目": ["必要押え力(最大)", "臨界探索角度 θd", "対応する初期半径 r₀", "安全率", "安定性評価"],
                     "値": [
                         f"{results['max_P']:.2f} kN/m²",
                         f"{results['critical_theta_deg']:.1f}°",
@@ -497,7 +497,7 @@ with tab1:
                 'Wf_kN': '自重Wf (kN)',
                 'lw_m': '自重作用点lw (m)',
                 'Mc_kNm': '粘着抵抗モーメントMc (kN·m)',
-                'P_kN_m2': '切羽抑え力P (kN/m²)'
+                'P_kN_m2': '必要切羽押え力P (kN/m²)'
             }
             df_detailed_jp = df_detailed.rename(columns=column_names)
             df_all_results_jp = df_all_results.rename(columns=column_names)
@@ -553,12 +553,12 @@ with tab1:
             st.write("**安全率の算出根拠**")
             st.info("""
             本システムでは、地山強度パラメータ（粘着力cと内部摩擦角φ）を同じ割合で変化させて、
-            切羽抑え力がちょうど0になる係数を求めることで安全率を算出しています。
+            必要切羽押え力がちょうど0になる係数を求めることで安全率を算出しています。
             
             - **元が不安定な場合（P > 0）**: 強度を増加してP=0となる係数を求め、安全率 = 1.0 ÷（強度増加前に対する係数）
             - **元が安定な場合（P ≤ 0）**: 強度を増加してP=0となる係数を求め、安全率 = 増加係数
             
-            例：切羽抑え力が正で、強度を0.5倍に低減するとP=0になる場合、安全率は2.0となります。
+            例：必要切羽押え力が正で、強度を0.5倍に低減するとP=0になる場合、安全率は2.0となります。
             """)
             
             # 安全率計算結果の取得
@@ -580,12 +580,12 @@ with tab1:
                 # グラフの作成
                 fig_sf = go.Figure()
                 
-                # 切羽抑え力の曲線
+                # 必要切羽押え力の曲線
                 fig_sf.add_trace(go.Scatter(
                     x=safety_factors,
                     y=pressures,
                     mode='lines+markers',
-                    name='切羽抑え力',
+                    name='必要切羽押え力',
                     line=dict(width=3, color='blue'),
                     marker=dict(size=6)
                 ))
@@ -610,9 +610,9 @@ with tab1:
                                annotation_text="安全率 = 1.0")
                 
                 fig_sf.update_layout(
-                    title="安全率と切羽抑え力の関係",
+                    title="安全率と必要切羽押え力の関係",
                     xaxis_title="安全率",
-                    yaxis_title="切羽抑え力 P (kN/m²)",
+                    yaxis_title="必要切羽押え力 P (kN/m²)",
                     height=500,
                     xaxis=dict(range=[0, max(safety_factors) * 1.1] if max(safety_factors) < float('inf') else [0, 10]),
                     showlegend=True
@@ -677,7 +677,7 @@ with tab1:
                         '安全率': safety_factors,
                         '粘着力 (kPa)': coh_values,
                         '内部摩擦角 (度)': phi_values,
-                        '切羽抑え力 (kN/m²)': pressures
+                        '必要切羽押え力 (kN/m²)': pressures
                     })
                     
                     # 臨界点の行を強調
@@ -762,7 +762,7 @@ with tab2:
     """)
     
     st.write("""
-    θd を掃引して P を評価し、最大値を切羽抑え力とします。
+    θd を掃引して P を評価し、最大値を必要切羽押え力とします。
     """)
 
 with tab3:
