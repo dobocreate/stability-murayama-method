@@ -165,34 +165,6 @@ with tab1:
                 help="地山の粘着力を入力してください（kPa単位）"
             )
         
-        # 解析パラメータ
-        st.subheader("解析パラメータ")
-        
-        st.write("**探索角度 θ_d の範囲 (度)**")
-        theta_col1, theta_col2 = st.columns(2)
-        with theta_col1:
-            theta_min = st.number_input(
-                "最小値",
-                min_value=10,
-                max_value=80,
-                value=20,
-                step=1,
-                key="theta_min"
-            )
-        with theta_col2:
-            theta_max = st.number_input(
-                "最大値",
-                min_value=20,
-                max_value=90,
-                value=80,
-                step=1,
-                key="theta_max"
-            )
-        
-        # 計算点数は自動で決定（1度刻み）
-        n_points = theta_max - theta_min + 1
-        st.write(f"**計算点数**: {n_points} 点（1度刻み）")
-        
         # 詳細パラメータ
         st.subheader("詳細パラメータ")
         
@@ -214,6 +186,31 @@ with tab1:
                 step=0.1,
                 help="Terzaghi実験による係数（標準値: 1.0、範囲: 1.0～1.5）"
             )
+            
+            st.write("**探索角度 θd の範囲 (°)**")
+            theta_col1, theta_col2 = st.columns(2)
+            with theta_col1:
+                theta_min = st.number_input(
+                    "最小値",
+                    min_value=10,
+                    max_value=80,
+                    value=20,
+                    step=1,
+                    key="theta_min"
+                )
+            with theta_col2:
+                theta_max = st.number_input(
+                    "最大値",
+                    min_value=20,
+                    max_value=90,
+                    value=80,
+                    step=1,
+                    key="theta_max"
+                )
+            
+            # 計算点数は自動で決定（1度刻み）
+            n_points = theta_max - theta_min + 1
+            st.write(f"**計算点数**: {n_points} 点（1度刻み）")
             
             force_finite_cover = st.checkbox(
                 "有限土被り式を強制的に使用", 
@@ -321,7 +318,7 @@ with tab1:
                 unsafe_allow_html=True
             )
         
-        # 必要支保圧の色分け
+        # 切羽抑え力の色分け
         max_p = results['max_P']
         if max_p <= 50:
             p_color_class = "metric-value-safe"
@@ -343,7 +340,7 @@ with tab1:
             st.markdown(
                 f"""
                 <div class="custom-metric-card">
-                    <div class="metric-label">💪 必要支保圧</div>
+                    <div class="metric-label">💪 切羽抑え力</div>
                     <div class="metric-value {p_color_class}">
                         {results['max_P']:.2f}
                     </div>
@@ -378,7 +375,7 @@ with tab1:
         results_tab1, results_tab2, results_tab3 = st.tabs(["計算結果", "結果出力", "安全率計算"])
         
         with results_tab1:
-            # 必要支保圧の分布グラフ
+            # 切羽抑え力の分布グラフ
             fig = go.Figure()
             
             # theta_valuesを取得
@@ -394,7 +391,7 @@ with tab1:
                 x=theta_values,
                 y=P_values,
                 mode='lines+markers',
-                name='必要支保圧',
+                name='切羽抑え力',
                 line=dict(width=2)
             ))
             
@@ -404,17 +401,17 @@ with tab1:
                 y=[results['max_P']],
                 mode='markers+text',
                 marker=dict(size=15, color='red', symbol='x'),
-                name='最大支保圧点',
-                text=[f"最大支保圧点<br>θ_d = {results['critical_theta_deg']:.1f}°<br>P = {results['max_P']:.2f} kN/m²"],
+                name='最大切羽抑え力点',
+                text=[f"最大切羽抑え力点<br>θd = {results['critical_theta_deg']:.1f}°<br>P = {results['max_P']:.2f} kN/m²"],
                 textposition="top center",
                 textfont=dict(size=12, color='red'),
                 showlegend=True
             ))
             
             fig.update_layout(
-                title="探索角度θ_dと必要支保圧の関係",
-                xaxis_title="探索角度 θ_d (度)",
-                yaxis_title="必要支保圧 P (kN/m²)",
+                title="探索角度θdと切羽抑え力の関係",
+                xaxis_title="探索角度 θd (度)",
+                yaxis_title="切羽抑え力 P (kN/m²)",
                 height=500
             )
             
@@ -440,7 +437,7 @@ with tab1:
                 safety_factor_str = "∞" if results['safety_factor'] == float('inf') else f"{results['safety_factor']:.2f}"
                 
                 summary_data = {
-                    "項目": ["最大必要支保圧", "臨界探索角度 θ_d", "対応する初期半径 r₀", "安全率", "安定性評価"],
+                    "項目": ["最大切羽抑え力", "臨界探索角度 θd", "対応する初期半径 r₀", "安全率", "安定性評価"],
                     "値": [
                         f"{results['max_P']:.2f} kN/m²",
                         f"{results['critical_theta_deg']:.1f}°",
@@ -489,8 +486,8 @@ with tab1:
             
             # カラム名を日本語に変更
             column_names = {
-                'theta_deg': '探索角度θ_d (度)',
-                'theta_rad': '探索角度θ_d (rad)',
+                'theta_deg': '探索角度θd (度)',
+                'theta_rad': '探索角度θd (rad)',
                 'r0_m': '初期半径r0 (m)',
                 'rd_m': '終端半径rd (m)',
                 'B_m': '水平投影幅B (m)',
@@ -500,7 +497,7 @@ with tab1:
                 'Wf_kN': '自重Wf (kN)',
                 'lw_m': '自重作用点lw (m)',
                 'Mc_kNm': '粘着抵抗モーメントMc (kN·m)',
-                'P_kN_m2': '必要支保圧P (kN/m²)'
+                'P_kN_m2': '切羽抑え力P (kN/m²)'
             }
             df_detailed_jp = df_detailed.rename(columns=column_names)
             df_all_results_jp = df_all_results.rename(columns=column_names)
@@ -511,7 +508,7 @@ with tab1:
             csv = csv_buffer.getvalue().encode('utf-8-sig')
             
             # プレビュー表示（臨界角度±10データポイント）
-            st.write("**データプレビュー（臨界角度θ_d周辺±10データポイント）**")
+            st.write("**データプレビュー（臨界角度θd周辺±10データポイント）**")
             
             # 臨界角度を取得
             critical_theta = results['critical_theta_deg']
@@ -534,7 +531,7 @@ with tab1:
             
             # 臨界角度行をピンク色で強調表示
             def highlight_critical_row(row):
-                if abs(float(row['探索角度θ_d (度)']) - critical_theta) < 0.5:
+                if abs(float(row['探索角度θd (度)']) - critical_theta) < 0.5:
                     return ['background-color: #FFB6C1'] * len(row)  # ピンク色
                 else:
                     return [''] * len(row)
@@ -556,12 +553,12 @@ with tab1:
             st.write("**安全率の算出根拠**")
             st.info("""
             本システムでは、地山強度パラメータ（粘着力cと内部摩擦角φ）を同じ割合で変化させて、
-            必要支保圧がちょうど0になる係数を求めることで安全率を算出しています。
+            切羽抑え力がちょうど0になる係数を求めることで安全率を算出しています。
             
             - **元が不安定な場合（P > 0）**: 強度を増加してP=0となる係数を求め、安全率 = 1.0 ÷（強度増加前に対する係数）
             - **元が安定な場合（P ≤ 0）**: 強度を増加してP=0となる係数を求め、安全率 = 増加係数
             
-            例：必要支保圧が正で、強度を0.5倍に低減するとP=0になる場合、安全率は2.0となります。
+            例：切羽抑え力が正で、強度を0.5倍に低減するとP=0になる場合、安全率は2.0となります。
             """)
             
             # 安全率計算結果の取得
@@ -583,12 +580,12 @@ with tab1:
                 # グラフの作成
                 fig_sf = go.Figure()
                 
-                # 必要支保圧の曲線
+                # 切羽抑え力の曲線
                 fig_sf.add_trace(go.Scatter(
                     x=safety_factors,
                     y=pressures,
                     mode='lines+markers',
-                    name='必要支保圧',
+                    name='切羽抑え力',
                     line=dict(width=3, color='blue'),
                     marker=dict(size=6)
                 ))
@@ -613,9 +610,9 @@ with tab1:
                                annotation_text="安全率 = 1.0")
                 
                 fig_sf.update_layout(
-                    title="安全率と必要支保圧の関係",
+                    title="安全率と切羽抑え力の関係",
                     xaxis_title="安全率",
-                    yaxis_title="必要支保圧 P (kN/m²)",
+                    yaxis_title="切羽抑え力 P (kN/m²)",
                     height=500,
                     xaxis=dict(range=[0, max(safety_factors) * 1.1] if max(safety_factors) < float('inf') else [0, 10]),
                     showlegend=True
@@ -680,7 +677,7 @@ with tab1:
                         '安全率': safety_factors,
                         '粘着力 (kPa)': coh_values,
                         '内部摩擦角 (度)': phi_values,
-                        '必要支保圧 (kN/m²)': pressures
+                        '切羽抑え力 (kN/m²)': pressures
                     })
                     
                     # 臨界点の行を強調
@@ -765,7 +762,7 @@ with tab2:
     """)
     
     st.write("""
-    θ_d を掃引して P を評価し、最大値を必要支保圧とします。
+    θd を掃引して P を評価し、最大値を切羽抑え力とします。
     """)
 
 with tab3:
@@ -788,7 +785,7 @@ with tab3:
        - 経験係数 K（標準: 1.0、Terzaghi実験では1.0～1.5）
     
     4. **解析パラメータの設定**
-       - 探索角度 θ_d の範囲を設定（標準: 20°～80°）
+       - 探索角度 θd の範囲を設定（標準: 20°～80°）
        - 計算は1度刻みで自動実行されます
     
     5. **計算の実行**
@@ -802,7 +799,7 @@ with tab3:
     - r₀ の入力欄がありません（自動計算）
     - 粘着力の単位が kPa に変更されています
     - 上載荷重 q は入力ではなく、内部で計算されます
-    - 探索するのは θ_d のみです（r₀ の範囲設定は不要）
+    - 探索するのは θd のみです（r₀ の範囲設定は不要）
     """)
     
     st.subheader("パラメータの目安")
