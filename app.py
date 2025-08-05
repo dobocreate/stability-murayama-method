@@ -104,7 +104,7 @@ tab1, tab2, tab3 = st.tabs(["安定性評価", "技術情報", "使い方"])
 
 with tab1:
     # 2列レイアウト
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([2, 3])
     
     with col1:
         # 地盤条件の入力
