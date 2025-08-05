@@ -482,52 +482,31 @@ with tab1:
             csv_buffer = io.StringIO()
             
             # 入力パラメータセクション
-            csv_buffer.write("## 入力パラメータ
-")
-            csv_buffer.write("パラメータ,値
-")
-            csv_buffer.write(f"切羽高さ Hf,{H_f} m
-")
-            csv_buffer.write(f"地山の単位体積重量 γ,{gamma} kN/m³
-")
-            csv_buffer.write(f"地山の内部摩擦角 φ,{phi}°
-")
-            csv_buffer.write(f"地山の粘着力 c,{coh} kPa
-")
-            csv_buffer.write(f"土被り H,{H} m
-" if H is not None else "土被り H,深部前提
-")
-            csv_buffer.write(f"影響幅係数 α,{alpha}
-")
-            csv_buffer.write(f"経験係数 K,{K}
-")
-            csv_buffer.write("
-")
+            csv_buffer.write("## 入力パラメータ\n")
+            csv_buffer.write("パラメータ,値\n")
+            csv_buffer.write(f"切羽高さ Hf,{H_f} m\n")
+            csv_buffer.write(f"地山の単位体積重量 γ,{gamma} kN/m³\n")
+            csv_buffer.write(f"地山の内部摩擦角 φ,{phi}°\n")
+            csv_buffer.write(f"地山の粘着力 c,{coh} kPa\n")
+            csv_buffer.write(f"土被り H,{H} m\n" if H is not None else "土被り H,深部前提\n")
+            csv_buffer.write(f"影響幅係数 α,{alpha}\n")
+            csv_buffer.write(f"経験係数 K,{K}\n")
+            csv_buffer.write("\n")
             
             # 計算結果サマリーセクション
-            csv_buffer.write("## 計算結果サマリー
-")
-            csv_buffer.write("項目,値
-")
-            csv_buffer.write(f"必要押え力(最大),{results['max_P']:.2f} kN/m²
-")
-            csv_buffer.write(f"臨界探索角度 θd,{results['critical_theta_deg']:.1f}°
-")
-            csv_buffer.write(f"対応する初期半径 r₀,{results['critical_r0']:.2f} m
-")
-            csv_buffer.write(f"水平投影幅 B,{results['critical_geometry']['B']:.2f} m
-")
+            csv_buffer.write("## 計算結果サマリー\n")
+            csv_buffer.write("項目,値\n")
+            csv_buffer.write(f"必要押え力(最大),{results['max_P']:.2f} kN/m²\n")
+            csv_buffer.write(f"臨界探索角度 θd,{results['critical_theta_deg']:.1f}°\n")
+            csv_buffer.write(f"対応する初期半径 r₀,{results['critical_r0']:.2f} m\n")
+            csv_buffer.write(f"水平投影幅 B,{results['critical_geometry']['B']:.2f} m\n")
             safety_factor_str = "∞" if results['safety_factor'] == float('inf') else f"{results['safety_factor']:.2f}"
-            csv_buffer.write(f"安全率,{safety_factor_str}
-")
-            csv_buffer.write(f"安定性評価,{results['stability']}
-")
-            csv_buffer.write("
-")
+            csv_buffer.write(f"安全率,{safety_factor_str}\n")
+            csv_buffer.write(f"安定性評価,{results['stability']}\n")
+            csv_buffer.write("\n")
             
             # 詳細計算結果セクション
-            csv_buffer.write("## 詳細計算結果
-")
+            csv_buffer.write("## 詳細計算結果\n")
             df_all_results_jp.to_csv(csv_buffer, index=False)
             csv = csv_buffer.getvalue().encode('utf-8-sig')
             
