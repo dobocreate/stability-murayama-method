@@ -111,7 +111,7 @@ with tab1:
         st.markdown("""
         <style>
         .stColumn:nth-child(1) {
-            padding-right: 2rem !important;
+            padding-right: 15rem !important;
         }
         </style>
         """, unsafe_allow_html=True)
