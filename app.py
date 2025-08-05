@@ -618,6 +618,7 @@ with tab1:
                     yaxis_title="必要切羽押え力 P (kN/m²)",
                     height=500,
                     xaxis=dict(range=[0, max(safety_factors) * 1.1] if max(safety_factors) < float('inf') else [0, 10]),
+                    yaxis=dict(autorange='reversed'),
                     showlegend=True
                 )
                 
