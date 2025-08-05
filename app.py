@@ -407,16 +407,17 @@ with tab1:
                 st.table(pd.DataFrame(input_data))
             
             with col_result2:
-                st.write("**解析結果サマリー**")
+                st.write("**計算結果サマリー**")
                 # 安全率の表示（無限大の場合の処理）
                 safety_factor_str = "∞" if results['safety_factor'] == float('inf') else f"{results['safety_factor']:.2f}"
                 
                 summary_data = {
-                    "項目": ["必要押え力(最大)", "臨界探索角度 θd", "対応する初期半径 r₀", "安全率", "安定性評価"],
+                    "項目": ["必要押え力(最大)", "臨界探索角度 θd", "対応する初期半径 r₀", "水平投影幅 B", "安全率", "安定性評価"],
                     "値": [
                         f"{results['max_P']:.2f} kN/m²",
                         f"{results['critical_theta_deg']:.1f}°",
                         f"{results['critical_r0']:.2f} m",
+                        f"{results['critical_geometry']['B']:.2f} m",
                         safety_factor_str,
                         results['stability']
                     ],
