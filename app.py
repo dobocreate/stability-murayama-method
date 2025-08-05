@@ -289,7 +289,7 @@ with tab1:
                     <div class="metric-value {stability_color_class}">
                         {stability_value} {emoji_symbol}
                     </div>
-                    <div class="metric-label" style="height: 1.5rem;">&nbsp;</div>
+
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -321,7 +321,6 @@ with tab1:
                     <div class="metric-value {p_color_class}">
                         {results['max_P']:.2f}
                     </div>
-                    <div class="metric-label">&nbsp;</div>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -341,7 +340,6 @@ with tab1:
                     <div class="metric-value {sf_color_class}">
                         {sf_display}
                     </div>
-                    <div class="metric-label">&nbsp;</div>
                 </div>
                 """,
                 unsafe_allow_html=True
